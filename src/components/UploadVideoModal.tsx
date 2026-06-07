@@ -13,7 +13,7 @@ interface UploadVideoModalProps {
 
 export default function UploadVideoModal({ onClose, onAddLesson, moduleOptions }: UploadVideoModalProps) {
   const [title, setTitle] = useState('');
-  const [selectedModuleId, setSelectedModuleId] = useState(moduleOptions[0]?.id || 'm2');
+  const [selectedModuleId, setSelectedModuleId] = useState(moduleOptions[0]?.id || '');
   const [minutes, setMinutes] = useState('05');
   const [seconds, setSeconds] = useState('00');
   const [overview, setOverview] = useState('');

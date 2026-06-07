@@ -4,7 +4,6 @@ import { Menu } from 'lucide-react';
 import { auth, db, OperationType, handleFirestoreError } from './lib/firebase';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, collection, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
-import { INITIAL_COURSES } from './data';
 import { Module, Lesson } from './types';
 import Sidebar from './components/Sidebar';
 import VideoPlayer from './components/VideoPlayer';
@@ -20,8 +19,8 @@ import LessonComments from './components/LessonComments';
 import AdminScreen from './components/AdminScreen';
 
 export default function App() {
-  const [courses, setCourses] = useState(INITIAL_COURSES);
-  const [activeCourseId, setActiveCourseId] = useState<string>('thermo-ii');
+  const [courses, setCourses] = useState<{ [courseId: string]: { title: string; modules: Module[] } }>({});
+  const [activeCourseId, setActiveCourseId] = useState<string>('');
   const [isAdmin, setIsAdmin] = useState(false);
   
   // Auth states
@@ -63,18 +62,7 @@ export default function App() {
     const coursesCollection = collection(db, 'courses');
     const unsubscribe = onSnapshot(coursesCollection, async (snapshot) => {
       if (snapshot.empty) {
-        // Build the Initial Seed to database so the database is populated on first login
-        try {
-          for (const [courseId, courseData] of Object.entries(INITIAL_COURSES)) {
-            await setDoc(doc(db, 'courses', courseId), {
-              id: courseId,
-              title: courseData.title,
-              modules: courseData.modules
-            });
-          }
-        } catch (err) {
-          console.error("Courses seeding issue:", err);
-        }
+        setCourses({});
       } else {
         const loaded: { [courseId: string]: { title: string; modules: Module[] } } = {};
         snapshot.forEach((doc) => {
@@ -223,11 +211,8 @@ export default function App() {
       duration: lessonData.duration,
       completed: false,
       overview: lessonData.overview,
-      thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop',
-      resources: [
-        { id: `r_custom_s_${Date.now()}`, name: 'Lesson_Slides.pdf', type: 'pdf', url: '#' },
-        { id: `r_custom_z_${Date.now()}`, name: 'Completed_Workspace_Snippet.zip', type: 'zip', url: '#' }
-      ]
+      thumbnail: '',
+      resources: []
     };
 
     const activeObj = courses[activeCourseId];

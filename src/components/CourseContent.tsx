@@ -20,12 +20,7 @@ export default function CourseContent({
   setSearchQuery
 }: CourseContentProps) {
   // Store expanded modules state
-  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
-    m1: false,
-    m2: true, // "Component Lifecycle" is expanded by default as seen in mockup
-    m3: true,
-    m4: true
-  });
+  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
 
   const toggleModule = (moduleId: string) => {
     setExpandedModules(prev => ({
@@ -83,14 +78,14 @@ export default function CourseContent({
           filteredModules.map((mod) => {
             const isExpanded = expandedModules[mod.id];
             return (
-              <div key={mod.id} className="border border-slate-100 rounded-lg overflow-hidden bg-slate-50/50" id={`module-block-${mod.id}`}>
+              <div key={mod.id} className="border border-slate-100 dark:border-slate-700/50 rounded-lg overflow-hidden bg-slate-50/50 dark:bg-slate-800/50" id={`module-block-${mod.id}`}>
                 {/* Module Section Header */}
                 <button
                   onClick={() => toggleModule(mod.id)}
-                  className="w-full px-4 py-3 pb-3 bg-white hover:bg-slate-50 transition-colors flex items-center justify-between text-left select-none cursor-pointer"
+                  className="w-full px-4 py-3 pb-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-between text-left select-none cursor-pointer"
                   id={`module-hdr-${mod.id}`}
                 >
-                  <span className="text-sm font-bold text-slate-800 font-sans tracking-tight">
+                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200 font-sans tracking-tight">
                     {mod.title}
                   </span>
                   {isExpanded ? (
@@ -102,7 +97,7 @@ export default function CourseContent({
 
                 {/* Lessons list wrapper with transition heights */}
                 {isExpanded && (
-                  <div className="p-1 px-2 pb-2 space-y-1 border-t border-slate-100 bg-white" id={`lessons-list-${mod.id}`}>
+                  <div className="p-1 px-2 pb-2 space-y-1 border-t border-slate-100 dark:border-slate-700/50 bg-white dark:bg-slate-800" id={`lessons-list-${mod.id}`}>
                     {mod.lessons.map((less) => {
                       const isActive = activeLesson.id === less.id;
                       return (
@@ -110,8 +105,8 @@ export default function CourseContent({
                           key={less.id}
                           className={`flex items-center justify-between p-2.5 rounded-lg transition-all text-xs border ${
                             isActive
-                              ? 'bg-slate-50 border-slate-100 shadow-sm text-slate-900 font-semibold'
-                              : 'border-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-800'
+                              ? 'bg-slate-50 dark:bg-slate-700 border-slate-100 dark:border-slate-600 shadow-sm text-slate-900 dark:text-slate-100 font-semibold'
+                              : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                           }`}
                           id={`lesson-row-${less.id}`}
                         >

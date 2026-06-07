@@ -25,24 +25,24 @@ export default function CourseProgressCard({
   ];
 
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.05)] border border-slate-100 flex flex-col justify-between h-full space-y-5 transition-shadow duration-300" id="progress-card-container">
+    <div className="bg-white dark:bg-slate-800 rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.05)] border border-slate-100 dark:border-slate-700 flex flex-col justify-between h-full space-y-5 transition-all duration-300" id="progress-card-container">
       {/* 1. Progress Metric Layout Block */}
       <div id="progress-metric-block">
-        <h3 className="text-sm font-extrabold text-slate-900 font-sans uppercase tracking-wider mb-3">
+        <h3 className="text-sm font-extrabold text-slate-900 dark:text-white font-sans uppercase tracking-wider mb-3">
           Course Progress
         </h3>
         
         <div className="flex items-center justify-between text-xs font-semibold mb-1.5" id="pct-row-labels">
-          <span className="text-slate-500" id="pct-left-label">
+          <span className="text-slate-500 dark:text-slate-400" id="pct-left-label">
             {completionPercentage}% complete
           </span>
-          <span className="text-[#00A896] bg-[#00A896]/10 px-2 py-0.5 rounded-md font-mono text-[11px]" id="pct-right-label">
+          <span className="text-[#00A896] dark:text-[#2dd4bf] bg-[#00A896]/10 dark:bg-[#00A896]/20 px-2 py-0.5 rounded-md font-mono text-[11px]" id="pct-right-label">
             {completedLessonsCount}/{totalLessonsCount} Lessons
           </span>
         </div>
 
         {/* Rounded Progress Tube */}
-        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden" id="tube-wrapper">
+        <div className="w-full bg-slate-100 dark:bg-slate-700 h-2.5 rounded-full overflow-hidden" id="tube-wrapper">
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${completionPercentage}%` }}
@@ -54,8 +54,8 @@ export default function CourseProgressCard({
       </div>
 
       {/* 2. Timeline Sizing Indicator Widget */}
-      <div className="pt-2 border-t border-slate-50 relative animate-fade-in" id="timeline-indicator-block">
-        <span className="text-[10px] font-bold text-slate-400 font-sans mb-3 block uppercase tracking-wider">
+      <div className="pt-2 border-t border-slate-50 dark:border-slate-700/50 relative animate-fade-in" id="timeline-indicator-block">
+        <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 font-sans mb-3 block uppercase tracking-wider">
           Timeline Stage
         </span>
 
@@ -67,14 +67,14 @@ export default function CourseProgressCard({
             className="absolute -translate-x-1/2 flex flex-col items-center"
             id="cursor-tracker-puck"
           >
-            <span className="text-[#00A896] text-[11px] leading-none mb-0.5 animate-bounce">▼</span>
+            <span className="text-[#00A896] dark:text-[#2dd4bf] text-[11px] leading-none mb-0.5 animate-bounce">▼</span>
           </motion.div>
         </div>
 
         {/* Absolute Horizontal timeline line with nodes */}
         <div className="relative flex items-center justify-between px-1" id="nodes-row-wrapper">
           {/* Gray track running background */}
-          <div className="absolute left-1 right-1 h-1 bg-slate-200 top-1/2 -translate-y-1/2 -z-10" />
+          <div className="absolute left-1 right-1 h-1 bg-slate-200 dark:bg-slate-700 top-1/2 -translate-y-1/2 -z-10" />
           
           {/* Teal track running background based on active state */}
           <motion.div
@@ -100,10 +100,10 @@ export default function CourseProgressCard({
                   whileTap={{ scale: 0.9 }}
                   className={`w-4 h-4 rounded-full border-2 transition-all duration-300 transform ${
                     isCurrent
-                      ? 'bg-white border-[#00A896] scale-110 shadow-lg shadow-[#00A896]/50'
+                      ? 'bg-white dark:bg-slate-800 border-[#00A896] dark:border-[#2dd4bf] scale-110 shadow-lg shadow-[#00A896]/50'
                       : isCompletedOrActive
                       ? 'bg-[#00A896] border-[#00A896]'
-                      : 'bg-white border-slate-300'
+                      : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600'
                   }`}
                 />
               </button>
@@ -112,7 +112,7 @@ export default function CourseProgressCard({
         </div>
 
         {/* Low / High Text markers underneath layout */}
-        <div className="flex justify-between items-center mt-2.5 px-0.5 text-[10px] font-bold text-slate-400 font-mono uppercase tracking-widest" id="low-high-labels-row">
+        <div className="flex justify-between items-center mt-2.5 px-0.5 text-[10px] font-bold text-slate-400 dark:text-slate-500 font-mono uppercase tracking-widest" id="low-high-labels-row">
           <span>Low</span>
           <span>High</span>
         </div>

@@ -214,20 +214,16 @@ export default function AdminScreen({ courses, setCourses, isAdmin }: AdminScree
         duration: durationString,
         completed: false,
         overview: newLessonOverview.trim(),
-        thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop',
+        thumbnail: '',
         videoUrl: videoUrl.trim() || undefined,
         solvedVideoUrl: solvedVideoUrl.trim() || undefined,
         isPremium: isPremium,
-        resources: resourceList.length > 0 ? resourceList : [
-          { id: `r_d_${Date.now()}`, name: 'Tutorial_Exercise.pdf', type: 'pdf', url: '#' }
-        ],
+        resources: resourceList,
         solvedTitle: `${newLessonTitle.trim()} (Solved Question)`,
         solvedDuration: durationString,
         solvedOverview: `Detailed chemical engineering step-by-step solved walkthrough for: ${newLessonTitle.trim()}.\n\nOverview:\n${newLessonOverview.trim()}`,
-        solvedThumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop',
-        solvedResources: resourceList.length > 0 ? resourceList : [
-          { id: `r_d_s_${Date.now()}`, name: 'Walkthrough_Notes_Handout.pdf', type: 'pdf', url: '#' }
-        ]
+        solvedThumbnail: '',
+        solvedResources: resourceList
       };
 
       const updatedModules = activeObj.modules.map(mod => {
@@ -663,7 +659,7 @@ export default function AdminScreen({ courses, setCourses, isAdmin }: AdminScree
                 </div>
 
                 <div className="space-y-1.5 pt-1">
-                  <h4 className="text-[10px] uppercase font-extrabold text-[#0D1E36] dark:text-white tracking-wide">Support Materials (Mockup Resource URL Link)</h4>
+                  <h4 className="text-[10px] uppercase font-extrabold text-[#0D1E36] dark:text-white tracking-wide">Support Materials Links</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex items-center space-x-2 bg-slate-50 dark:bg-slate-900 p-2 border border-slate-200 dark:border-slate-700 rounded-xl">
                       <FileText className="w-4 h-4 text-emerald-600 shrink-0" />

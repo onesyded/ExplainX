@@ -115,7 +115,7 @@ export function HomeView({
           <motion.div 
             variants={itemVariants}
             whileHover={{ y: -3 }}
-            className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_40px_rgba(13,30,54,0.08)] border border-slate-100 lg:col-span-2 flex flex-col justify-between transition-all duration-300" 
+            className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_40px_rgba(13,30,54,0.08)] border border-slate-100 dark:border-slate-700 lg:col-span-2 flex flex-col justify-between transition-all duration-300" 
             id="core-class-card"
           >
             <div className="space-y-3.5">
@@ -126,23 +126,23 @@ export function HomeView({
                   <span>Active Classroom</span>
                 </div>
               </div>
-              <h3 className="text-xl font-bold text-slate-950 font-sans leading-tight tracking-tight">{activeCourseTitle || 'Your Selection'}</h3>
-              <p className="text-xs text-slate-500 leading-relaxed">
+              <h3 className="text-xl font-bold text-slate-950 dark:text-white font-sans leading-tight tracking-tight">{activeCourseTitle || 'Your Selection'}</h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                 Experience focused learning with fully solved tutorial question walkthroughs.
               </p>
 
               {/* Quick progress bar */}
               <div className="space-y-2 pt-2">
                 <div className="flex justify-between items-center text-xs font-bold">
-                  <span className="text-slate-500">Course Progress</span>
-                  <span className="text-[#00A896] bg-[#00A896]/10 px-2 py-0.5 rounded-md">{completionPercentage}% Completed</span>
+                  <span className="text-slate-500 dark:text-slate-400">Course Progress</span>
+                  <span className="text-[#00A896] dark:text-[#2dd4bf] bg-[#00A896]/10 dark:bg-[#00A896]/20 px-2 py-0.5 rounded-md">{completionPercentage}% Completed</span>
                 </div>
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-100 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
                   <motion.div 
                     initial={{ width: 0 }}
                     animate={{ width: `${completionPercentage}%` }}
                     transition={{ duration: 0.8, ease: 'easeOut' }}
-                    className="bg-[#00A896] h-full rounded-full shadow-sm shadow-[#00A896]/20" 
+                    className="bg-[#00A896] dark:bg-[#2dd4bf] h-full rounded-full shadow-sm shadow-[#00A896]/20 dark:shadow-[#2dd4bf]/20" 
                   />
                 </div>
               </div>
@@ -163,11 +163,11 @@ export function HomeView({
           {/* Highlight achievements & Course switcher */}
           <motion.div 
             variants={itemVariants}
-            className="bg-slate-50 rounded-2xl p-6 flex flex-col justify-between border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)]" 
+            className="bg-slate-50 dark:bg-slate-800/50 rounded-2xl p-6 flex flex-col justify-between border border-slate-100 dark:border-slate-700/50 shadow-[0_4px_20px_rgb(0,0,0,0.02)]" 
             id="home-highlights"
           >
             <div className="space-y-4 text-left">
-              <h4 className="text-xs font-bold text-slate-800 font-sans tracking-wide uppercase">Launch another course</h4>
+              <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 font-sans tracking-wide uppercase">Launch another course</h4>
               
               <div className="space-y-2">
                 {quickCourses.map((c) => {
@@ -184,20 +184,20 @@ export function HomeView({
                       whileHover={{ x: 3 }}
                       className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${
                         isCurrent 
-                          ? 'bg-[#0D1E36]/5 border-[#0D1E36]/20 hover:bg-[#0D1E36]/10' 
-                          : 'bg-white border-slate-100 hover:border-slate-300'
+                          ? 'bg-[#0D1E36]/5 dark:bg-slate-700 border-[#0D1E36]/20 dark:border-slate-600 hover:bg-[#0D1E36]/10 dark:hover:bg-slate-600' 
+                          : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                       }`}
                     >
                       <div className="flex items-start space-x-3 max-w-[70%] bg-transparent border-0 p-0 shadow-none">
-                        <div className={`p-2 rounded-lg ${isCurrent ? 'bg-[#0D1E36]/15' : 'bg-slate-50'}`}>
+                        <div className={`p-2 rounded-lg ${isCurrent ? 'bg-[#0D1E36]/15 dark:bg-slate-600' : 'bg-slate-50 dark:bg-slate-700'}`}>
                           <BookOpen className={`w-4 h-4 ${c.iconColor}`} />
                         </div>
                         <div className="truncate">
-                          <p className="text-xs font-bold text-slate-800 leading-tight truncate">{c.title}</p>
-                          <p className="text-[10px] text-slate-400 mt-1">{isCurrent ? 'Active Studio' : 'Enrolled'}</p>
+                          <p className="text-xs font-bold text-slate-800 dark:text-white leading-tight truncate">{c.title}</p>
+                          <p className="text-[10px] text-slate-400 dark:text-slate-400 mt-1">{isCurrent ? 'Active Studio' : 'Enrolled'}</p>
                         </div>
                       </div>
-                      <span className="text-xs font-bold text-[#00A896] bg-[#00A896]/10 px-2 py-0.5 rounded shrink-0">
+                      <span className="text-xs font-bold text-[#00A896] dark:text-[#2dd4bf] bg-[#00A896]/10 dark:bg-[#00A896]/20 px-2 py-0.5 rounded shrink-0">
                         {prog}%
                       </span>
                     </motion.button>
@@ -205,11 +205,11 @@ export function HomeView({
                 })}
               </div>
 
-              <div className="pt-2 border-t border-slate-200/60 flex items-start space-x-2.5">
+              <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-start space-x-2.5">
                 <Award className="w-4 h-4 text-[#E97426] shrink-0 mt-0.5" />
                 <div>
                   <p className="text-[10px] text-slate-400 font-bold leading-tight">Total certified status</p>
-                  <p className="text-[10px] text-slate-500 mt-0.5">{completedCount} Lectures cleared across available syllabi.</p>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">{completedCount} Lectures cleared across available syllabi.</p>
                 </div>
               </div>
             </div>
@@ -288,40 +288,40 @@ export function CoursesView({
               variants={itemVariants}
               whileHover={{ y: -5, boxShadow: "0 20px 40px rgba(13,30,54,0.08)" }}
               key={course.id} 
-              className="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[300px] transition-all duration-300" 
+              className="bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[300px] transition-all duration-300" 
               id={`ccard-${course.id}`}
             >
               <div className="space-y-3.5">
                 <div className="flex items-center justify-between">
                   <span className={`text-[9px] uppercase font-extrabold tracking-wider px-2.5 py-1 rounded-md ${
-                    course.enrolled ? 'bg-emerald-50 text-emerald-600 border border-emerald-500/10' : 'bg-slate-100 text-slate-500'
+                    course.enrolled ? 'bg-emerald-50 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 border border-emerald-500/10' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
                   }`}>
                     {course.enrolled ? 'Active' : 'Not Registered'}
                   </span>
                   <span className="text-slate-400 text-xs font-mono font-medium">{course.duration}</span>
                 </div>
 
-                <h3 className="text-base font-bold text-slate-950 font-sans tracking-tight leading-tight">
+                <h3 className="text-base font-bold text-slate-950 dark:text-white font-sans tracking-tight leading-tight">
                   {course.title}
                 </h3>
-                <p className="text-xs text-slate-500 leading-relaxed truncate-2-lines">
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed truncate-2-lines">
                   {course.desc}
                 </p>
               </div>
 
-              <div className="space-y-4 pt-4 mt-4 border-t border-slate-100" id={`ccard-ftr-${course.id}`}>
+              <div className="space-y-4 pt-4 mt-4 border-t border-slate-100 dark:border-slate-700" id={`ccard-ftr-${course.id}`}>
                 {course.enrolled ? (
                   <div className="space-y-1.5" id={`prog-${course.id}`}>
                     <div className="flex justify-between items-center text-[10px] font-bold">
                       <span className="text-slate-400">Progress</span>
-                      <span className="text-[#00A896] font-semibold">{course.progress}%</span>
+                      <span className="text-[#00A896] dark:text-[#2dd4bf] font-semibold">{course.progress}%</span>
                     </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                    <div className="w-full bg-slate-100 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
                       <motion.div 
                         initial={{ width: 0 }}
                         animate={{ width: `${course.progress}%` }}
                         transition={{ duration: 0.6, ease: 'easeOut' }}
-                        className="bg-[#00A896] h-full rounded-full" 
+                        className="bg-[#00A896] dark:bg-[#2dd4bf] h-full rounded-full" 
                       />
                     </div>
                   </div>

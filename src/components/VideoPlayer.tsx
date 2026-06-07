@@ -62,7 +62,7 @@ export default function VideoPlayer({ lesson, onToggleComplete }: VideoPlayerPro
   const getChemicalEngineeringVideo = (lessonId: string) => {
     if (lesson.solvedVideoUrl) return lesson.solvedVideoUrl;
     if (lesson.videoUrl) return lesson.videoUrl;
-    return "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
+    return undefined;
   };
 
   const currentVideoSrc = lesson.solvedVideoUrl || lesson.videoUrl;
@@ -860,7 +860,6 @@ export default function VideoPlayer({ lesson, onToggleComplete }: VideoPlayerPro
               <video
                 ref={videoRef}
                 src={getChemicalEngineeringVideo(lesson.id)}
-                poster={lesson.thumbnail}
                 onTimeUpdate={handleTimeUpdate}
                 onLoadedMetadata={handleLoadedMetadata}
                 onEnded={handleVideoEnded}

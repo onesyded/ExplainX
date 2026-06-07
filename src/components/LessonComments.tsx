@@ -99,11 +99,11 @@ export default function LessonComments({ lesson, user, isAdmin = false }: { less
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Ask a question about this lesson..."
-          className="w-full p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#0D1E36] focus:border-transparent outline-none mb-3 resize-none h-24"
+          className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-xl focus:ring-2 focus:ring-[#0D1E36] dark:focus:ring-slate-600 focus:border-transparent outline-none mb-3 resize-none h-24"
         />
         <button
           type="submit"
-          className="bg-[#0D1E36] text-white px-6 py-2.5 rounded-xl font-bold text-sm tracking-wide hover:bg-slate-800 transition-colors shadow-sm"
+          className="bg-[#0D1E36] dark:bg-[#1a3a63] text-white px-6 py-2.5 rounded-xl font-bold text-sm tracking-wide hover:bg-slate-800 dark:hover:bg-[#153158] transition-colors shadow-sm"
         >
           Post Question
         </button>
@@ -111,28 +111,28 @@ export default function LessonComments({ lesson, user, isAdmin = false }: { less
 
       <div className="space-y-6">
         {comments.map(c => (
-          <div key={c.id} className="p-4 rounded-xl border border-slate-100 bg-slate-50/50">
+          <div key={c.id} className="p-4 rounded-xl border border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
             <div className="flex items-center space-x-3 mb-2">
-              <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-bold text-sm">
+              <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-bold text-sm">
                 {c.userName.charAt(0).toUpperCase()}
               </div>
               <div>
-                <p className="font-bold text-slate-800 text-sm">{c.userName}</p>
+                <p className="font-bold text-slate-800 dark:text-white text-sm">{c.userName}</p>
                 <p className="text-[10px] text-slate-400 font-mono">
                   {c.createdAt?.toDate ? c.createdAt.toDate().toLocaleString() : 'Just now'}
                 </p>
               </div>
             </div>
-            <p className="text-slate-700 text-sm mb-4 leading-relaxed pl-11">{c.text}</p>
+            <p className="text-slate-700 dark:text-slate-300 text-sm mb-4 leading-relaxed pl-11">{c.text}</p>
             
             {c.replyText && (
-              <div className="ml-11 mt-3 p-4 bg-emerald-50/50 border border-emerald-100 rounded-xl relative">
-                <div className="absolute -left-[23px] top-6 w-5 border-t-2 border-emerald-200"></div>
+              <div className="ml-11 mt-3 p-4 bg-emerald-50/50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800/50 rounded-xl relative">
+                <div className="absolute -left-[23px] top-6 w-5 border-t-2 border-emerald-200 dark:border-emerald-700"></div>
                 <div className="flex items-center space-x-2 mb-1.5">
                   <div className="w-5 h-5 rounded-md bg-emerald-600 flex items-center justify-center text-white font-bold text-[10px]">TA</div>
-                  <span className="text-xs font-bold text-emerald-800 tracking-wide uppercase">Teaching Assistant</span>
+                  <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400 tracking-wide uppercase">Teaching Assistant</span>
                 </div>
-                <p className="text-slate-700 text-sm leading-relaxed">{c.replyText}</p>
+                <p className="text-slate-700 dark:text-slate-300 text-sm leading-relaxed">{c.replyText}</p>
               </div>
             )}
 
@@ -142,11 +142,11 @@ export default function LessonComments({ lesson, user, isAdmin = false }: { less
                   value={replyTextMap[c.id] || ''}
                   onChange={(e) => setReplyTextMap(prev => ({ ...prev, [c.id]: e.target.value }))}
                   placeholder="Type reply as admin..."
-                  className="w-full text-sm p-3 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none mb-2"
+                  className="w-full text-sm p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none mb-2"
                 />
                 <button
                   onClick={() => handleReply(c.id)}
-                  className="text-xs font-bold bg-emerald-600 text-white px-3 py-1.5 rounded-lg"
+                  className="text-xs font-bold bg-emerald-600 dark:bg-emerald-700 text-white px-3 py-1.5 rounded-lg"
                 >
                   Post Reply
                 </button>
