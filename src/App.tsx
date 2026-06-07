@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { Menu } from 'lucide-react';
 import { auth, db, OperationType, handleFirestoreError } from './lib/firebase';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
 import { doc, getDoc, collection, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
@@ -131,6 +132,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<string>('home');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
+  const [mobileOpen, setMobileOpen] = useState<boolean>(false);
 
   // Auto-set activeCourseId to first available course if current selection is invalid
   useEffect(() => {
@@ -326,8 +328,43 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col font-sans select-none transition-colors duration-200" id="learnflow-app-root">
+      {/* Mobile Top App Bar */}
+      <header className="md:hidden h-16 bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between px-4 shrink-0 transition-colors duration-200 z-30 shadow-xs" id="mobile-top-bar">
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setMobileOpen(true)}
+            className="p-2 -ml-2 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors focus:outline-none border-0 cursor-pointer bg-transparent"
+            id="mobile-hamburger-btn"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          
+          <div className="flex items-center cursor-pointer" onClick={() => setActiveTab('home')}>
+            <div className="w-8 h-8 flex items-center justify-center mr-1">
+              <img
+                src="/src/assets/images/logo_3d_1780805779310.png"
+                alt="ExplainX"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <span className="text-lg font-black tracking-tight text-[#0D1E36] dark:text-white">
+              Explain<span className="text-[#E97426]">X</span>
+            </span>
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <div 
+            onClick={() => setActiveTab('profile')}
+            className="w-8 h-8 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 font-bold text-xs flex items-center justify-center cursor-pointer hover:opacity-90 active:scale-95 transition-all"
+          >
+            {userName.charAt(0).toUpperCase()}
+          </div>
+        </div>
+      </header>
+
       <div className="flex flex-1" id="main-content-row">
-        {/* 2. Left Sidebar Navigation rail */}
+        {/* 2. Left/Mobile responsive Sidebar */}
         <Sidebar
           activeTab={activeTab}
           setActiveTab={async (tab) => {
@@ -347,10 +384,12 @@ export default function App() {
           userName={userName}
           userEmail={userEmail}
           isAdmin={isAdmin}
+          mobileOpen={mobileOpen}
+          setMobileOpen={setMobileOpen}
         />
 
         {/* 3. Render Area Pane */}
-        <main className="flex-1 p-6 md:p-8 overflow-y-auto" id="dashboard-render-pane">
+        <main className="flex-1 p-4 md:p-8 overflow-y-auto" id="dashboard-render-pane">
           <AnimatePresence mode="wait">
             {activeTab === 'home' && (
               <motion.div
