@@ -1,0 +1,103 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Primitive Helpers
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(userId) { return isSignedIn() && request.auth.uid == userId; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    // Validation Blueprint for UserProfile
+    function isValidUserProfile(data) {
+      return data.keys().hasAll(['userId', 'email', 'year', 'semester', 'createdAt', 'updatedAt'])
+        && data.keys().size() == 6
+        && data.userId == request.auth.uid
+        && data.email is string
+        && data.year is string && data.year.size() <= 20
+        && data.semester is string && data.semester.size() <= 20
+        && data.createdAt == request.time
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidUserProfileUpdate() {
+      let data = incoming();
+      return data.userId == existing().userId
+        && data.email is string
+        && data.year is string && data.year.size() <= 20
+        && data.semester is string && data.semester.size() <= 20
+        && data.createdAt == existing().createdAt
+        && data.updatedAt == request.time;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isValidComment(data) {
+      return data.keys().hasAll(['lessonId', 'courseId', 'userId', 'userName', 'text', 'createdAt', 'updatedAt'])
+        && data.userId == request.auth.uid
+        && data.userName is string && data.userName.size() <= 200
+        && data.text is string && data.text.size() <= 2000
+        && data.lessonId is string && data.lessonId.size() <= 128
+        && data.courseId is string && data.courseId.size() <= 128
+        && (!data.keys().hasAny(['replyText']) || data.replyText is string)
+        && data.createdAt == request.time
+        && data.updatedAt is timestamp;
+    }
+
+    function isValidCommentUpdate() {
+      let data = incoming();
+      return data.lessonId == existing().lessonId
+        && data.courseId == existing().courseId
+        && data.userId == existing().userId
+        && data.userName == existing().userName
+        && data.text is string && data.text.size() <= 2000
+        && (!data.keys().hasAny(['replyText']) || (data.replyText is string && data.replyText.size() <= 2000))
+        && data.createdAt == existing().createdAt
+        && data.updatedAt == request.time;
+    }
+
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn() && request.auth.token.email == 'richmond006mensah@gmail.com' && request.auth.uid == adminId;
+      allow update, delete: if false;
+    }
+
+    match /comments/{commentId} {
+      allow get: if isSignedIn();
+      allow list: if isSignedIn() && resource.data.courseId != null;
+      
+      allow create: if isSignedIn() && isValidId(commentId) && isValidComment(incoming());
+      
+      allow update: if isSignedIn() && isValidId(commentId) && isValidCommentUpdate() && (
+        (isOwner(existing().userId) && incoming().diff(existing()).affectedKeys().hasOnly(['text', 'updatedAt'])) ||
+        (isAdmin() && incoming().diff(existing()).affectedKeys().hasOnly(['replyText', 'updatedAt']))
+      );
+      
+      allow delete: if isAdmin() || isOwner(existing().userId);
+    }
+
+    // Profiles Collection
+    match /users/{userId} {
+      // Users can only read their own profile
+      allow get: if isOwner(userId);
+      // No blanket list allowed for PII, only query if condition matches
+      allow list: if isOwner(userId) && resource.data.userId == request.auth.uid;
+      
+      allow create: if isOwner(userId) && isValidId(userId) && isValidUserProfile(incoming());
+      
+      allow update: if isOwner(userId) && isValidId(userId) && isValidUserProfileUpdate() && (
+        incoming().diff(existing()).affectedKeys().hasOnly(['year', 'semester', 'updatedAt'])
+      );
+      
+      allow delete: if false;
+    }
+  }
+}

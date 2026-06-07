@@ -6,10 +6,9 @@ import { Lesson } from '../types';
 interface VideoPlayerProps {
   lesson: Lesson;
   onToggleComplete: () => void;
-  viewMode?: 'concept' | 'solved';
 }
 
-export default function VideoPlayer({ lesson, onToggleComplete, viewMode = 'concept' }: VideoPlayerProps) {
+export default function VideoPlayer({ lesson, onToggleComplete }: VideoPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(80);
@@ -36,18 +35,16 @@ export default function VideoPlayer({ lesson, onToggleComplete, viewMode = 'conc
   const [videoDuration, setVideoDuration] = useState(duration);
 
   // Captions array with timing
-  const defaultConceptCaptions = [
-    { start: 0, end: 5, text: `Welcome to our Thermodynamics course! Today, we explore ${lesson.title}.` },
-    { start: 5, end: 15, text: "Let's review the theoretical concept of pure fluids, equations of state, or equilibrium." },
-    { start: 15, end: 28, text: "We understand that volumetric coordinates: P, V, and T must be modeled with accuracy." },
-    { start: 28, end: 42, text: "Notice the modular formulas we use. Let's observe the experimental behavior under specific conditions." },
-    { start: 42, end: 60, text: "Be sure to download our companion slides in the documents section to follow along." },
-    { start: 60, end: 1000, text: "Perfect. Now continue with the corresponding step-by-step questions in the resources sidebar." }
+  const defaultSolvedCaptions = [
+    { start: 0, end: 5, text: `Let's solve a tutorial problem for ${lesson.title}.` },
+    { start: 5, end: 15, text: "First, we look at the given parameters and state our assumptions." },
+    { start: 15, end: 28, text: "We'll apply the appropriate equations step by step." },
+    { start: 28, end: 42, text: "Notice how the units cancel out to give us the final answer." },
+    { start: 42, end: 60, text: "Make sure you can replicate this derivation yourself." },
+    { start: 60, end: 1000, text: "Great work! Let's move on to the next problem." }
   ];
 
-  const captions = viewMode === 'solved'
-    ? (lesson.solvedCaptions || defaultConceptCaptions)
-    : (lesson.conceptCaptions || defaultConceptCaptions);
+  const captions = lesson.solvedCaptions || defaultSolvedCaptions;
 
   // Active caption
   const activeCaption = captions.find(c => currentTime >= c.start && currentTime <= c.end)?.text || "";
@@ -55,11 +52,8 @@ export default function VideoPlayer({ lesson, onToggleComplete, viewMode = 'conc
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   // Reliable Google CDN MP4 video assets that never block embedding/iframes with CORS or hotlinking tokens
-  const getChemicalEngineeringVideo = (lessonId: string, activeViewMode: 'concept' | 'solved') => {
-    if (activeViewMode === 'solved') {
-      return "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
-    }
-    return "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4";
+  const getChemicalEngineeringVideo = (lessonId: string) => {
+    return "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
   };
 
   // Switch or update duration whenever lesson changes
@@ -109,7 +103,7 @@ export default function VideoPlayer({ lesson, onToggleComplete, viewMode = 'conc
     if (videoRef.current) {
       videoRef.current.load();
     }
-  }, [lesson.id, viewMode]);
+  }, [lesson.id]);
 
   // Speak captions dynamically using Web Speech Synthesis with absolute fluidity (no delays or chops)
   useEffect(() => {
@@ -789,7 +783,7 @@ export default function VideoPlayer({ lesson, onToggleComplete, viewMode = 'conc
           /* RENDER MODE B: Backplane HTML5 video player block */
           <video
             ref={videoRef}
-            src={getChemicalEngineeringVideo(lesson.id, viewMode)}
+            src={getChemicalEngineeringVideo(lesson.id)}
             poster={lesson.thumbnail}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}

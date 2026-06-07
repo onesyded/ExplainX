@@ -1,5 +1,5 @@
 {
-  "name": "ChemNova",
+  "name": "ExplainX",
   "description": "An interactive course learning dashboard featuring video playback, content navigation, and progress tracking.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]

@@ -27,7 +27,7 @@ export default function LessonOverview({ lesson, onUpdateOverview }: LessonOverv
   };
 
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col h-full group" id="lesson-overview-card">
+    <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col group" id="lesson-overview-card">
       <div className="flex items-center justify-between mb-3 border-b border-slate-50 pb-2.5" id="overview-card-header">
         <h3 className="text-base font-bold text-slate-900 font-sans tracking-tight">
           Lesson Overview
@@ -66,7 +66,7 @@ export default function LessonOverview({ lesson, onUpdateOverview }: LessonOverv
         <textarea
           value={editableText}
           onChange={(e) => setEditableText(e.target.value)}
-          rows={6}
+          rows={3}
           className="w-full text-slate-600 text-[13px] leading-relaxed font-sans border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:ring-1 focus:ring-[#0D1E36] focus:border-[#0D1E36] bg-slate-50/50"
           id="overview-textarea"
         />

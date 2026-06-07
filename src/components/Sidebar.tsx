@@ -1,4 +1,4 @@
-import { Home, LayoutDashboard, Compass, FileText, User, BarChart3, LogOut } from 'lucide-react';
+import { Home, LayoutDashboard, Compass, FileText, User, BarChart3, LogOut, GraduationCap, Settings } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface SidebarProps {
@@ -9,17 +9,25 @@ interface SidebarProps {
 export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
   const menuItems = [
     { id: 'home', label: 'Home', icon: Home },
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'courses', label: 'My Courses', icon: Compass },
-    { id: 'resources', label: 'Resources', icon: FileText },
     { id: 'profile', label: 'Profile', icon: User },
-    { id: 'reports', label: 'Reports', icon: BarChart3 },
+    { id: 'settings', label: 'Settings', icon: Settings },
     { id: 'logout', label: 'Logout', icon: LogOut }
   ];
 
   return (
-    <aside className="w-64 bg-white border-r border-slate-100 min-h-[calc(100vh-68px)] flex flex-col pt-6 select-none shrink-0" id="sidebar-left">
-      <div className="px-3 space-y-1.5" id="sidebar-menu-list">
+    <aside className="w-64 bg-white border-r border-slate-100 min-h-screen flex flex-col select-none shrink-0" id="sidebar-left">
+      {/* Brand Header */}
+      <div className="h-16 flex items-center px-6 border-b border-slate-100 cursor-pointer" onClick={() => setActiveTab('home')}>
+        <div className="w-8 h-8 rounded-xl bg-[#0D1E36] flex items-center justify-center mr-3 shadow-md shadow-[#0D1E36]/20">
+          <GraduationCap className="w-5 h-5 text-white" />
+        </div>
+        <span className="text-xl font-extrabold tracking-tight font-sans text-[#0D1E36] [text-shadow:1px_1px_0px_#cbd5e1,2px_2px_0px_#94a3b8,3px_3px_2px_rgba(0,0,0,0.15)]">
+          Explain<span className="text-[#E97426]">X</span>
+        </span>
+      </div>
+
+      <div className="px-3 space-y-1.5 pt-6" id="sidebar-menu-list">
         {menuItems.map((item, idx) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -57,7 +65,7 @@ export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
       </div>
 
       <div className="mt-auto p-4 border-t border-slate-105 text-center" id="sidebar-footer">
-        <p className="text-[10px] text-slate-400 font-mono tracking-wider font-semibold uppercase">ChemNova v1.50</p>
+        <p className="text-[10px] text-slate-400 font-mono tracking-wider font-semibold uppercase">ExplainX v1.50</p>
       </div>
     </aside>
   );

@@ -255,60 +255,53 @@ export const INITIAL_MODULES_DATA: Module[] = [
 export const CRE_MODULES_DATA: Module[] = [
   {
     id: 'cre_m1',
-    title: 'Module 1: Kinetics & Batch Reactors Sizing',
+    title: 'Module 1: Constant Density System',
     lessons: [
       {
         id: 'cre_l1',
-        title: 'Introduction to Reaction Kinetics & Molar Balance',
+        title: 'Questions 1 & 2',
         duration: '13:10',
         completed: true,
-        overview: 'This lecture reviews basic reaction kinetic laws, stoichiometry tables under variable density, and the integral/differential design equations for liquid-phase Batch configurations.',
+        overview: 'This video covers the step-by-step solutions for Question 1 and Question 2 involving constant density batch reactor derivations.',
         thumbnail: '/src/assets/images/teacher_react_lesson_1780368326324.png',
         resources: [
-          { id: 'cre_r1', name: 'Batch_Kinetics_Review.pdf', type: 'pdf', url: '#' },
-          { id: 'cre_r1_b', name: 'Stoichiometric_Conversion_Table.pdf', type: 'pdf', url: '#' }
+          { id: 'cre_r1', name: 'Batch_Kinetics_Review.pdf', type: 'pdf', url: '#' }
         ],
-        solvedTitle: 'Batch Reactor Conversion & First-Order Rate Constants',
-        solvedDuration: '14:55',
-        solvedOverview: 'Interactive numerical solution of a liquid batch system:\n\n• Problem 1: Integrate the reactor rates to calculate the total reaction time required to achieve 90% conversion of reactant A.\n• Problem 2: Evaluate the rate constant k under elevated temperature using the Arrhenius equation.',
+        solvedTitle: 'Questions 1 & 2',
+        solvedDuration: '13:10',
+        solvedOverview: 'This video covers the step-by-step solutions for Question 1 and Question 2 involving constant density batch reactor derivations.',
         solvedThumbnail: '/src/assets/images/teacher_react_lesson_1780368326324.png',
         solvedResources: [
           { id: 'cre_s1', name: 'Batch_Reactor_StepByStep_Solved.pdf', type: 'pdf', url: '#' }
         ],
         solvedCaptions: [
-          { start: 0, end: 5, text: "Welcome! Today we are solving design equations for batch reactors." },
-          { start: 5, end: 15, text: "Let's state the reaction rate -rA = k * CA. Under variable composition, CA = CA0 * (1 - X)." },
-          { start: 15, end: 25, text: "Integrating our sizing expression: t = CA0 * Integral( dX / -rA ) from 0 to 0.90 yields t = 2.3 / k." },
-          { start: 25, end: 35, text: "Substituting our k = 0.05 min^-1, we get a total batch reaction run-time of 46 minutes." }
+          { start: 0, end: 5, text: "Welcome! Let's solve Question 1 for constant density systems." },
+          { start: 5, end: 15, text: "For a constant volume batch reactor, V = V0." },
+          { start: 15, end: 25, text: "Now moving on to Question 2, we integrate our sizing expression." },
+          { start: 25, end: 35, text: "Substituting our k = 0.05 min^-1, we get the total batch reaction time." }
         ]
-      }
-    ]
-  },
-  {
-    id: 'cre_m2',
-    title: 'Module 2: Continuous Flow Reactors (CSTR vs. PFR)',
-    lessons: [
+      },
       {
         id: 'cre_l2',
-        title: 'Continuous Stirred Tank Reactors (CSTR)',
+        title: 'Questions 3 & 4',
         duration: '15:40',
         completed: false,
-        overview: 'Formulate the space-time volume design equation for continuous stirred tank flow reactors under steady-state operation. We analyze physical mixing parameters and outlet concentrations.',
+        overview: 'In this video, we go through the solutions for Question 3 and Question 4, applying continuous stirred tank reactor formulations for constant density operations.',
         thumbnail: '/src/assets/images/teacher_react_lesson_1780368326324.png',
         resources: [
           { id: 'cre_r2', name: 'CSTR_Mixed_Flow_Sizing_Handout.pdf', type: 'pdf', url: '#' }
         ],
-        solvedTitle: 'Comparing CSTR vs. PFR Sizing for Second-Order Yield',
-        solvedDuration: '18:20',
-        solvedOverview: 'Detailed kinetic comparison exercise:\n\n• Problem 1: Formulate CSTR and PFR size requirements to achieve the identical 85% conversion level for a second-order reaction.\n• Problem 2: Draw the Levenspiel Plot demonstrating spatial reactor efficiency.',
+        solvedTitle: 'Questions 3 & 4',
+        solvedDuration: '15:40',
+        solvedOverview: 'In this video, we go through the solutions for Question 3 and Question 4, applying continuous stirred tank reactor formulations for constant density operations.',
         solvedThumbnail: '/src/assets/images/teacher_react_lesson_1780368326324.png',
         solvedResources: [
           { id: 'cre_s2', name: 'CSTR_vs_PFR_Sizing_Compendium.pdf', type: 'pdf', url: '#' }
         ],
         solvedCaptions: [
-          { start: 0, end: 6, text: "In this tutorial, we evaluate reactor volumes for a second-order reaction." },
+          { start: 0, end: 6, text: "Let's tackle Question 3 for CSTR under constant density." },
           { start: 6, end: 15, text: "For second-order, CSTR volume V_CSTR = F0 * X / (k * CA0^2 * (1 - X)^2)." },
-          { start: 15, end: 26, text: "PFR volume integration gives V_PFR = F0/k/CA0^2 * (X / (1-X)). Note how CSTR requires twice the PFR volume." }
+          { start: 15, end: 26, text: "Moving to Question 4, we evaluate space-time tau = V/v0." }
         ]
       }
     ]

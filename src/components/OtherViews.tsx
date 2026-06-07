@@ -108,7 +108,7 @@ export function HomeView({
             </div>
             <h3 className="text-xl font-bold text-slate-950 font-sans leading-tight tracking-tight">{activeCourseTitle}</h3>
             <p className="text-xs text-slate-500 leading-relaxed">
-              Experience focused learning with bespoke material resources, targeted concept video series, and continuous, fully solved practice tutorials.
+              Experience focused learning with fully solved tutorial question walkthroughs.
             </p>
 
             {/* Quick progress bar */}

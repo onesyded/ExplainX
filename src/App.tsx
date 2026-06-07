@@ -1,31 +1,59 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { BookOpen, CheckSquare } from 'lucide-react';
+import { auth, db } from './lib/firebase';
+import { onAuthStateChanged, User, signOut } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 import { INITIAL_COURSES } from './data';
 import { Module, Lesson } from './types';
-import Header from './components/Header';
 import Sidebar from './components/Sidebar';
 import VideoPlayer from './components/VideoPlayer';
 import CourseContent from './components/CourseContent';
 import LessonOverview from './components/LessonOverview';
-import ResourcesSection from './components/ResourcesSection';
 import CourseProgressCard from './components/CourseProgressCard';
 import UploadVideoModal from './components/UploadVideoModal';
-import { HomeView, CoursesView, ProfileView, GlobalResourcesView, ReportsView } from './components/OtherViews';
+import { HomeView, CoursesView, ProfileView } from './components/OtherViews';
+import AuthScreen from './components/AuthScreen';
+import OnboardingScreen from './components/OnboardingScreen';
+import SettingsScreen from './components/SettingsScreen';
+import LessonComments from './components/LessonComments';
 
 export default function App() {
   const [courses, setCourses] = useState(INITIAL_COURSES);
   const [activeCourseId, setActiveCourseId] = useState<string>('thermo-ii');
   
+  // Auth states
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        // Check if user requires onboarding
+        const userDocRef = doc(db, 'users', currentUser.uid);
+        const userDoc = await getDoc(userDocRef);
+        if (!userDoc.exists()) {
+          setNeedsOnboarding(true);
+        } else {
+          setNeedsOnboarding(false);
+        }
+      }
+      setAuthLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
+
   // Set default active lesson to the 5-minute Platform Orientation & Course Overview video
   const [activeLesson, setActiveLesson] = useState<Lesson>(INITIAL_COURSES['thermo-ii'].modules[0].lessons[0]);
+  const [isPlayingVideo, setIsPlayingVideo] = useState<boolean>(false);
   
-  const [activeTab, setActiveTab] = useState<string>('dashboard');
-  const [lessonViewMode, setLessonViewMode] = useState<'concept' | 'solved'>('concept');
+  const [activeTab, setActiveTab] = useState<string>('home');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
-  const [userName, setUserName] = useState<string>('Richmond');
-  const userEmail = "richmond006mensah@gmail.com";
+  
+  const userEmail = user?.email || "";
+  const userName = user?.displayName || "Student";
 
   // Derive dynamic modular syllabus for currently active course
   const modules = courses[activeCourseId]?.modules || [];
@@ -158,13 +186,13 @@ export default function App() {
   // Compute active module index based on active selection (defaults to 0)
   const activeModuleIndex = Math.max(0, modules.findIndex((m) => m.lessons.some((l) => l.id === activeLesson.id)));
 
-  // Construct resolved active lesson depending on view mode (Concept Explanation vs. Solved Questions)
+  // Construct resolved active lesson depending on view mode (Exclusively Solved Questions)
   const resolvedActiveLesson: Lesson = {
     ...activeLesson,
-    title: lessonViewMode === 'solved' && activeLesson.solvedTitle ? activeLesson.solvedTitle : activeLesson.title,
-    duration: lessonViewMode === 'solved' && activeLesson.solvedDuration ? activeLesson.solvedDuration : activeLesson.duration,
-    overview: lessonViewMode === 'solved' && activeLesson.solvedOverview ? activeLesson.solvedOverview : activeLesson.overview,
-    resources: lessonViewMode === 'solved' && activeLesson.solvedResources ? activeLesson.solvedResources : activeLesson.resources,
+    title: activeLesson.solvedTitle ? activeLesson.solvedTitle : activeLesson.title,
+    duration: activeLesson.solvedDuration ? activeLesson.solvedDuration : activeLesson.duration,
+    overview: activeLesson.solvedOverview ? activeLesson.solvedOverview : activeLesson.overview,
+    resources: activeLesson.solvedResources ? activeLesson.solvedResources : activeLesson.resources,
   };
 
   // Switch course action
@@ -174,7 +202,6 @@ export default function App() {
     if (targetCourse && targetCourse.modules.length > 0 && targetCourse.modules[0].lessons.length > 0) {
       setActiveLesson(targetCourse.modules[0].lessons[0]);
     }
-    setLessonViewMode('concept');
   };
 
   // Navigation timeline trigger to shift modules
@@ -182,46 +209,43 @@ export default function App() {
     const targetModule = modules[modIndex];
     if (targetModule && targetModule.lessons.length > 0) {
       setActiveLesson(targetModule.lessons[0]);
-      setLessonViewMode('concept');
     }
   };
 
   // Selection callbacks
   const handleSelectLesson = (lesson: Lesson) => {
     setActiveLesson(lesson);
-    setLessonViewMode('concept');
+    setIsPlayingVideo(true);
     setActiveTab('dashboard'); // Always return to dashboard classroom to view the lecture
   };
 
+  const handleEnterClassroom = () => {
+    setIsPlayingVideo(false);
+    setActiveTab('dashboard');
+  };
+
+  if (authLoading) {
+    return <div className="min-h-screen bg-slate-50 flex items-center justify-center font-sans"> Loading... </div>;
+  }
+
+  if (!user) {
+    return <AuthScreen />;
+  }
+
+  if (needsOnboarding) {
+    return <OnboardingScreen onComplete={() => setNeedsOnboarding(false)} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans select-none" id="learnflow-app-root">
-      {/* 1. Header Navigation HUD */}
-      <Header
-        onUploadClick={() => setShowUploadModal(true)}
-        activeTab={activeTab === 'dashboard' ? 'dashboard' : activeTab}
-        setActiveTab={(tab) => {
-          if (tab === 'logout') {
-            if (confirm("Are you sure you want to log out from LearnFlow?")) {
-              alert("Logged out successfully! Re-routing back to home.");
-              setActiveTab('home');
-            }
-          } else {
-            setActiveTab(tab);
-          }
-        }}
-        userEmail={userEmail}
-        userName={userName}
-      />
-
       <div className="flex flex-1" id="main-content-row">
         {/* 2. Left Sidebar Navigation rail */}
         <Sidebar
           activeTab={activeTab}
           setActiveTab={(tab) => {
             if (tab === 'logout') {
-              if (confirm("Are you sure you want to log out from LearnFlow?")) {
-                alert("Logged out successfully! Re-routing back to home.");
-                setActiveTab('home');
+              if (confirm("Are you sure you want to log out from ExplainX?")) {
+                signOut(auth);
               }
             } else {
               setActiveTab(tab);
@@ -241,7 +265,7 @@ export default function App() {
                 transition={{ duration: 0.25, ease: 'easeOut' }}
               >
                 <HomeView
-                  onEnterClassroom={() => setActiveTab('dashboard')}
+                  onEnterClassroom={handleEnterClassroom}
                   completionPercentage={courseProgresses[activeCourseId]}
                   completedCount={allLessons.filter(l => l.completed).length}
                   totalCount={allLessons.length}
@@ -264,7 +288,7 @@ export default function App() {
                 transition={{ duration: 0.25, ease: 'easeOut' }}
               >
                 <CoursesView
-                  onEnterClassroom={() => setActiveTab('dashboard')}
+                  onEnterClassroom={handleEnterClassroom}
                   completionPercentage={courseProgresses[activeCourseId]}
                   completedCount={allLessons.filter(l => l.completed).length}
                   totalCount={allLessons.length}
@@ -276,17 +300,7 @@ export default function App() {
               </motion.div>
             )}
 
-            {activeTab === 'resources' && (
-              <motion.div
-                key="resources"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.25, ease: 'easeOut' }}
-              >
-                <GlobalResourcesView />
-              </motion.div>
-            )}
+
 
             {activeTab === 'profile' && (
               <motion.div
@@ -299,28 +313,24 @@ export default function App() {
                 <ProfileView 
                   userEmail={userEmail} 
                   userName={userName}
-                  onSaveName={(name) => setUserName(name)}
+                  onSaveName={() => {}}
                 />
               </motion.div>
             )}
 
-            {activeTab === 'reports' && (
+            {activeTab === 'settings' && (
               <motion.div
-                key="reports"
+                key="settings"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.25, ease: 'easeOut' }}
               >
-                <ReportsView
-                  onEnterClassroom={() => setActiveTab('dashboard')}
-                  completionPercentage={completionPercentage}
-                  completedCount={completedLessonsCount}
-                  totalCount={totalLessonsCount}
-                  userEmail={userEmail}
-                />
+                <SettingsScreen />
               </motion.div>
             )}
+
+
 
              {activeTab === 'dashboard' && (
               <motion.div
@@ -337,92 +347,66 @@ export default function App() {
                   <div className="text-left" id="breadcrumb-box">
                     <h1 className="text-xl font-extrabold text-slate-900 font-sans tracking-tight">{courses[activeCourseId]?.title || 'Chemical Engineering'} Learning Studio</h1>
                     <p className="text-xs text-slate-500 font-semibold font-sans mt-0.5">
-                      My Courses <span className="text-slate-400 mx-1">&gt;</span> {courses[activeCourseId]?.title || 'Active Course'} <span className="text-slate-400 mx-1">&gt;</span> {activeLesson.title} <span className="text-slate-400 mx-1">&gt;</span> <span className={lessonViewMode === 'concept' ? 'text-[#E97426]' : 'text-[#00A896]'}>{lessonViewMode === 'concept' ? 'Concept Explanation' : 'Tutorial Solutions'}</span>
+                      My Courses <span className="text-slate-400 mx-1">&gt;</span> {courses[activeCourseId]?.title || 'Active Course'} <span className="text-slate-400 mx-1">&gt;</span> {activeLesson.title} <span className="text-slate-400 mx-1">&gt;</span> <span className="text-[#00A896]">Tutorial Solutions</span>
                     </p>
-                  </div>
-
-                  {/* Mode Toggles with active layout indicator */}
-                  <div className="flex bg-slate-100 p-1.5 rounded-xl self-start md:self-auto shrink-0 border border-slate-200/50" id="classroom-mode-tabs">
-                    <button
-                      onClick={() => setLessonViewMode('concept')}
-                      className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-250 cursor-pointer flex items-center space-x-2 ${
-                        lessonViewMode === 'concept'
-                          ? 'bg-white text-[#0D1E36] shadow-sm'
-                          : 'text-slate-500 hover:text-[#0D1E36]'
-                      }`}
-                      id="tab-concept-explanation"
-                    >
-                      <BookOpen className="w-3.5 h-3.5 text-[#E97426]" />
-                      <span>Concept Video</span>
-                    </button>
-                    <button
-                      onClick={() => setLessonViewMode('solved')}
-                      className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all duration-250 cursor-pointer flex items-center space-x-2 ${
-                        lessonViewMode === 'solved'
-                          ? 'bg-white text-[#0D1E36] shadow-sm'
-                          : 'text-slate-500 hover:text-[#0D1E36]'
-                      }`}
-                      id="tab-solved-questions"
-                    >
-                      <CheckSquare className="w-3.5 h-3.5 text-[#00A896]" />
-                      <span>Tutorials</span>
-                    </button>
                   </div>
                 </div>
 
-                {/* Bento Content Grid: Left player stack + Right content list */}
-                <div className="grid grid-cols-1 xl:grid-cols-4 gap-6" id="dashboard-classroom-grid">
+                {/* Bento Content Grid: Conditional render based on isPlayingVideo */}
+                <div className="grid grid-cols-1 gap-6" id="dashboard-classroom-grid">
                   
-                  {/* 3/4 Width: Media & Details */}
-                  <div className="xl:col-span-3 space-y-6 flex flex-col justify-between" id="video-and-overview-column">
-                    {/* Custom Video Player HUD */}
-                    <VideoPlayer
-                      lesson={resolvedActiveLesson}
-                      onToggleComplete={handleToggleActiveComplete}
-                      viewMode={lessonViewMode}
-                    />
+                  {isPlayingVideo ? (
+                    <div className="space-y-6 flex flex-col justify-between max-w-5xl mx-auto w-full" id="video-and-overview-column">
+                      <button 
+                        onClick={() => setIsPlayingVideo(false)}
+                        className="self-start px-4 py-2 bg-white text-slate-600 rounded-lg shadow-sm border border-slate-200 text-sm font-bold flex items-center space-x-2 hover:bg-slate-50 transition-colors"
+                      >
+                        <span className="text-lg leading-none font-black">&larr;</span> 
+                        <span>Back to Course Contents</span>
+                      </button>
+                      
+                      {/* Custom Video Player HUD */}
+                      <VideoPlayer
+                        lesson={resolvedActiveLesson}
+                        onToggleComplete={handleToggleActiveComplete}
+                      />
 
-                    {/* Micro-grid underneath Video Player: Overview & Materials */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="overview-materials-subgrid">
-                      <div id="wrapper-overview">
-                        <LessonOverview
-                          lesson={resolvedActiveLesson}
-                          onUpdateOverview={handleUpdateOverview}
+                      {/* Micro-grid underneath Video Player: Overview & Materials */}
+                      <div className="grid grid-cols-1 gap-6" id="overview-materials-subgrid">
+                        <div id="wrapper-overview">
+                          <LessonOverview
+                            lesson={resolvedActiveLesson}
+                            onUpdateOverview={handleUpdateOverview}
+                          />
+                          <LessonComments lesson={resolvedActiveLesson} user={user} />
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-6 flex flex-col justify-between max-w-4xl mx-auto w-full" id="chapters-and-progress-column">
+                      <div className="flex-1" id="curriculum-outer-wrap">
+                        <CourseContent
+                          modules={modules}
+                          activeLesson={activeLesson}
+                          onSelectLesson={handleSelectLesson}
+                          onToggleComplete={handleToggleComplete}
+                          searchQuery={searchQuery}
+                          setSearchQuery={setSearchQuery}
                         />
                       </div>
-                      <div id="wrapper-companion">
-                        <ResourcesSection
-                          resources={resolvedActiveLesson.resources}
+
+                      {/* Completeness bar & slider widget */}
+                      <div id="outer-progress-wrap" className="shrink-0 mt-2">
+                        <CourseProgressCard
+                          completionPercentage={completionPercentage}
+                          totalLessonsCount={totalLessonsCount}
+                          completedLessonsCount={completedLessonsCount}
+                          activeModuleIndex={activeModuleIndex}
+                          onModuleTimelineSelect={handleModuleTimelineSelect}
                         />
                       </div>
                     </div>
-                  </div>
-
-                  {/* 1/4 Width: Chapter Curriculums & Dynamic Course Completeness */}
-                  <div className="xl:col-span-1 space-y-6 flex flex-col justify-between" id="chapters-and-progress-column">
-                    {/* Dynamic course content syllabus */}
-                    <div className="flex-1" id="curriculum-outer-wrap">
-                      <CourseContent
-                        modules={modules}
-                        activeLesson={activeLesson}
-                        onSelectLesson={handleSelectLesson}
-                        onToggleComplete={handleToggleComplete}
-                        searchQuery={searchQuery}
-                        setSearchQuery={setSearchQuery}
-                      />
-                    </div>
-
-                    {/* Completeness bar & slider widget */}
-                    <div id="outer-progress-wrap" className="shrink-0 mt-2">
-                      <CourseProgressCard
-                        completionPercentage={completionPercentage}
-                        totalLessonsCount={totalLessonsCount}
-                        completedLessonsCount={completedLessonsCount}
-                        activeModuleIndex={activeModuleIndex}
-                        onModuleTimelineSelect={handleModuleTimelineSelect}
-                      />
-                    </div>
-                  </div>
+                  )}
 
                 </div>
               </motion.div>
