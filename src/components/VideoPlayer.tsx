@@ -1,7 +1,14 @@
 import { useState, useEffect, useRef, ChangeEvent } from 'react';
-import { Play, Pause, Volume2, RotateCcw, VolumeX, Maximize, Settings, Subtitles, Cpu, Tv } from 'lucide-react';
+import { Play, Pause, Volume2, RotateCcw, VolumeX, Maximize, Settings, Subtitles, Cpu, Tv, Lock, Unlock, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Lesson } from '../types';
+
+function getYouTubeId(url?: string): string | null {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+}
 
 interface VideoPlayerProps {
   lesson: Lesson;
@@ -53,8 +60,17 @@ export default function VideoPlayer({ lesson, onToggleComplete }: VideoPlayerPro
 
   // Reliable Google CDN MP4 video assets that never block embedding/iframes with CORS or hotlinking tokens
   const getChemicalEngineeringVideo = (lessonId: string) => {
+    if (lesson.solvedVideoUrl) return lesson.solvedVideoUrl;
+    if (lesson.videoUrl) return lesson.videoUrl;
     return "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4";
   };
+
+  const currentVideoSrc = lesson.solvedVideoUrl || lesson.videoUrl;
+  const youtubeId = getYouTubeId(currentVideoSrc);
+
+  // Authorization Checks for premium videos
+  const isUserPremium = localStorage.getItem('simulate_premium') === 'true' || localStorage.getItem('simulate_admin') === 'true';
+  const showPremiumLock = lesson.isPremium && !isUserPremium;
 
   // Switch or update duration whenever lesson changes
   useEffect(() => {
@@ -194,6 +210,7 @@ export default function VideoPlayer({ lesson, onToggleComplete }: VideoPlayerPro
   };
 
   const clickPlayOverlay = () => {
+    if (youtubeId && !useSimulation) return;
     setIsPlaying(!isPlaying);
   };
 
@@ -769,81 +786,144 @@ export default function VideoPlayer({ lesson, onToggleComplete }: VideoPlayerPro
       {/* Screen Frame Content */}
       <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden" id="video-screen-frame">
         
-        {/* RENDER MODE A: Canvas Process Simulation Workspace */}
-        {useSimulation ? (
-          <canvas
-            ref={canvasRef}
-            width={640}
-            height={360}
-            className="w-full h-full object-cover select-none absolute inset-0 cursor-pointer"
-            onClick={clickPlayOverlay}
-            id="simulation-canvas-core"
-          />
+        {showPremiumLock ? (
+          /* PREMIUM SUBSCRIPTION LOCK WALL */
+          <div className="absolute inset-0 z-30 bg-gradient-to-br from-[#0b101d] via-[#101726] to-[#080d1a] border border-slate-800 flex flex-col items-center justify-center p-6 text-center select-none" id="premium-lock-overlay">
+            <div className="w-16 h-16 bg-[#ffbd2e]/10 text-[#ffbd2e] rounded-full flex items-center justify-center border border-[#ffbd2e]/20 mb-4 animate-pulse shadow-[0_0_30px_rgba(255,189,46,0.15)]">
+              <Lock className="w-7 h-7" />
+            </div>
+            
+            <span className="text-[10px] bg-[#E97426] text-white font-extrabold px-3 py-1 rounded-full uppercase tracking-wider mb-2 select-none shadow-md">
+              👑 Premium Walkthrough Solution
+            </span>
+            
+            <h3 className="text-lg md:text-xl font-extrabold text-white tracking-tight leading-snug max-w-md font-sans">
+              Unlock Step-by-Step Chemical Walkthrough
+            </h3>
+            
+            <p className="text-xs text-slate-405 font-medium max-w-md mt-2 leading-relaxed">
+              This video guide and formula workout handout requires active Premium access. Click below to upgrade instantly and view HD lecture streams, formulas code, and tutor discussion boards.
+            </p>
+            
+            <div className="mt-5 flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => {
+                  localStorage.setItem('simulate_premium', 'true');
+                  window.location.reload();
+                }}
+                className="bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-600 hover:to-yellow-600 text-slate-950 font-bold px-6 py-2.5 rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg transition-transform active:scale-95 cursor-pointer"
+              >
+                <Unlock className="w-4 h-4 shrink-0" />
+                <span>Simulate Upgrade & Unlock Video</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  alert("Redirecting to subscriber payment gateway... (Tip: You can bypass this flow by turning on 'Premium subscription Simulation' in App Settings!)");
+                }}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold px-5 py-2.5 rounded-xl text-xs flex items-center justify-center space-x-1.5 transition-transform active:scale-95 cursor-pointer border border-slate-705"
+              >
+                <span>Purchase Membership Plan</span>
+              </button>
+            </div>
+            
+            <span className="text-[10px] text-slate-500 font-semibold font-mono mt-4 leading-none">
+              Pro tip: You can toggle 'Premium subscription Simulation' inside Settings tab on 1 click.
+            </span>
+          </div>
         ) : (
-          /* RENDER MODE B: Backplane HTML5 video player block */
-          <video
-            ref={videoRef}
-            src={getChemicalEngineeringVideo(lesson.id)}
-            poster={lesson.thumbnail}
-            onTimeUpdate={handleTimeUpdate}
-            onLoadedMetadata={handleLoadedMetadata}
-            onEnded={handleVideoEnded}
-            onClick={clickPlayOverlay}
-            className="w-full h-full object-cover select-none absolute inset-0 cursor-pointer"
-            playsInline
-            id="video-media-core"
-          />
+          <>
+            {/* RENDER MODE A: Canvas Process Simulation Workspace */}
+            {useSimulation ? (
+              <canvas
+                ref={canvasRef}
+                width={640}
+                height={360}
+                className="w-full h-full object-cover select-none absolute inset-0 cursor-pointer"
+                onClick={clickPlayOverlay}
+                id="simulation-canvas-core"
+              />
+            ) : youtubeId ? (
+              /* YOUTUBE EMBED PLAYER */
+              <div className="w-full h-full absolute inset-0 bg-slate-950" id="youtube-embed-wrapper">
+                <iframe
+                  src={`https://www.youtube.com/embed/${youtubeId}?autoplay=0&modestbranding=1&rel=0`}
+                  title={lesson.title}
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="w-full h-full object-cover select-none absolute inset-0"
+                />
+              </div>
+            ) : (
+              /* RENDER MODE B: Backplane HTML5 video player block */
+              <video
+                ref={videoRef}
+                src={getChemicalEngineeringVideo(lesson.id)}
+                poster={lesson.thumbnail}
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleLoadedMetadata}
+                onEnded={handleVideoEnded}
+                onClick={clickPlayOverlay}
+                className="w-full h-full object-cover select-none absolute inset-0 cursor-pointer"
+                playsInline
+                id="video-media-core"
+              />
+            )}
+
+            {/* Dim overlay when paused */}
+            {(!youtubeId || useSimulation) && (
+              <div 
+                onClick={clickPlayOverlay}
+                className={`absolute inset-0 bg-black/40 transition-opacity duration-300 cursor-pointer ${isPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} 
+              />
+            )}
+
+            {/* Floating Circular Play Overlay inside Center */}
+            <AnimatePresence>
+              {!isPlaying && (!youtubeId || useSimulation) && (
+                <motion.button
+                  initial={{ opacity: 0, scale: 0.4 }}
+                  animate={{ 
+                    opacity: 1, 
+                    scale: 1,
+                    boxShadow: ["0px 0px 0px 0px rgba(0, 168, 150, 0)", "0px 0px 0px 15px rgba(0, 168, 150, 0.2)", "0px 0px 0px 0px rgba(0, 168, 150, 0)"]
+                  }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                  transition={{ 
+                    opacity: { duration: 0.2 },
+                    scale: { type: 'spring', stiffness: 350, damping: 25 },
+                    boxShadow: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+                  }}
+                  whileHover={{ scale: 1.1, backgroundColor: "#00c2ad" }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={clickPlayOverlay}
+                  className="absolute z-10 w-20 h-20 bg-[#00A896]/95 text-white rounded-full flex items-center justify-center shadow-2xl cursor-pointer"
+                  id="center-play-trigger"
+                >
+                  <Play className="w-10 h-10 fill-white text-white translate-x-1" />
+                </motion.button>
+              )}
+            </AnimatePresence>
+
+            {/* Custom Closed Caption Render Layer */}
+            <AnimatePresence>
+              {showCaptions && isPlaying && activeCaption && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 15 }}
+                  className="absolute bottom-16 inset-x-4 flex justify-center text-center select-none z-20 pointer-events-none" 
+                  id="caption-overlay-layer"
+                >
+                  <span className="bg-black/90 text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold max-w-xl font-sans leading-relaxed shadow-2xl border border-white/10 backdrop-blur-md">
+                    {activeCaption}
+                  </span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </>
         )}
-
-        {/* Dim overlay when paused */}
-        <div 
-          onClick={clickPlayOverlay}
-          className={`absolute inset-0 bg-black/40 transition-opacity duration-300 cursor-pointer ${isPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} 
-        />
-
-        {/* Floating Circular Play Overlay inside Center */}
-        <AnimatePresence>
-          {!isPlaying && (
-            <motion.button
-              initial={{ opacity: 0, scale: 0.4 }}
-              animate={{ 
-                opacity: 1, 
-                scale: 1,
-                boxShadow: ["0px 0px 0px 0px rgba(0, 168, 150, 0)", "0px 0px 0px 15px rgba(0, 168, 150, 0.2)", "0px 0px 0px 0px rgba(0, 168, 150, 0)"]
-              }}
-              exit={{ opacity: 0, scale: 0.5 }}
-              transition={{ 
-                opacity: { duration: 0.2 },
-                scale: { type: 'spring', stiffness: 350, damping: 25 },
-                boxShadow: { repeat: Infinity, duration: 2, ease: "easeInOut" }
-              }}
-              whileHover={{ scale: 1.1, backgroundColor: "#00c2ad" }}
-              whileTap={{ scale: 0.9 }}
-              onClick={clickPlayOverlay}
-              className="absolute z-10 w-20 h-20 bg-[#00A896]/95 text-white rounded-full flex items-center justify-center shadow-2xl cursor-pointer"
-              id="center-play-trigger"
-            >
-              <Play className="w-10 h-10 fill-white text-white translate-x-1" />
-            </motion.button>
-          )}
-        </AnimatePresence>
-
-        {/* Custom Closed Caption Render Layer */}
-        <AnimatePresence>
-          {showCaptions && isPlaying && activeCaption && (
-            <motion.div 
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 15 }}
-              className="absolute bottom-16 inset-x-4 flex justify-center text-center select-none z-20 pointer-events-none" 
-              id="caption-overlay-layer"
-            >
-              <span className="bg-black/90 text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold max-w-xl font-sans leading-relaxed shadow-2xl border border-white/10 backdrop-blur-md">
-                {activeCaption}
-              </span>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
       {/* Customized Bottom Control System */}
@@ -918,6 +998,22 @@ export default function VideoPlayer({ lesson, onToggleComplete }: VideoPlayerPro
           </div>
 
           <div className="flex items-center space-x-3.5" id="hud-deck-right">
+            {/* Watch on YouTube deep link dynamic option */}
+            {youtubeId && (
+              <motion.a
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                href={currentVideoSrc}
+                target="_blank"
+                rel="noreferrer"
+                className="text-[9px] uppercase font-black px-3 py-1.5 rounded-lg bg-red-600/20 text-red-400 border border-red-500/30 hover:bg-red-600/30 hover:text-white transition-all duration-200 cursor-pointer flex items-center space-x-1 shrink-0"
+                id="hud-deep-link-youtube"
+              >
+                <ExternalLink className="w-3 h-3 text-red-500" />
+                <span>Watch on YouTube</span>
+              </motion.a>
+            )}
+
             {/* COMPLETED Toggle badge */}
             <motion.button
               whileHover={{ scale: 1.03 }}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db, auth } from '../lib/firebase';
+import { db, auth, OperationType, handleFirestoreError } from '../lib/firebase';
 import { collection, query, where, orderBy, onSnapshot, doc, setDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { User } from 'firebase/auth';
 
@@ -15,32 +15,30 @@ interface CommentData {
   updatedAt: any;
 }
 
-export default function LessonComments({ lesson, user }: { lesson: any, user: User | null }) {
+export default function LessonComments({ lesson, user, isAdmin = false }: { lesson: any, user: User | null, isAdmin?: boolean }) {
   const [comments, setComments] = useState<CommentData[]>([]);
   const [newComment, setNewComment] = useState('');
-  const [isAdmin, setIsAdmin] = useState(false);
   const [replyTextMap, setReplyTextMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // Check if the user is an admin by trying to create their admin doc (bootstrapping)
-    // and then listening to their admin status
-    const checkAdmin = async () => {
+    // Check if the user is the custom admin to write their admins doc (bootstrapping metadata)
+    const bootstrapAdminDoc = async () => {
       if (user && user.email === 'richmond006mensah@gmail.com') {
         try {
           await setDoc(doc(db, 'admins', user.uid), { email: user.email });
         } catch (e) {
           // Ignore
         }
-        setIsAdmin(true);
       }
     };
-    checkAdmin();
+    bootstrapAdminDoc();
   }, [user]);
 
   useEffect(() => {
     if (!lesson?.id) return;
     const q = query(
       collection(db, 'comments'),
+      where('courseId', '==', lesson.courseId || 'thermo-ii'),
       where('lessonId', '==', lesson.id),
       orderBy('createdAt', 'desc')
     );
@@ -52,6 +50,7 @@ export default function LessonComments({ lesson, user }: { lesson: any, user: Us
       setComments(data);
     }, (error) => {
       console.error("Comments subscribe error", error);
+      handleFirestoreError(error, OperationType.LIST, 'comments');
     });
     return () => unsubscribe();
   }, [lesson?.id]);
@@ -92,8 +91,8 @@ export default function LessonComments({ lesson, user }: { lesson: any, user: Us
   };
 
   return (
-    <div className="mt-8 bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
-      <h3 className="text-xl font-bold tracking-tight text-slate-900 mb-6">Discussion & Questions</h3>
+    <div className="mt-8 bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md transition-colors">
+      <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white mb-6">Discussion & Questions</h3>
       
       <form onSubmit={handleSubmit} className="mb-8">
         <textarea

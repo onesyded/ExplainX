@@ -48,7 +48,7 @@ export default function CourseContent({
   }).filter(mod => mod.hasMatches);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-100 flex flex-col overflow-hidden h-full" id="course-content-container">
+    <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 flex flex-col overflow-hidden h-full transition-colors" id="course-content-container">
       {/* Search Header Container */}
       <div className="p-4 border-b border-slate-50 flex items-center space-x-2 shrink-0" id="course-content-search-sec">
         <div className="relative flex-1" id="search-input-wrap">

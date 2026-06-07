@@ -18,16 +18,16 @@ export default function AuthScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 selection:bg-slate-200">
-      <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center">
-        <div className="w-16 h-16 rounded-2xl bg-[#0D1E36] flex items-center justify-center mb-6 shadow-md shadow-[#0D1E36]/20">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4 selection:bg-slate-200 transition-colors">
+      <div className="max-w-md w-full bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-md border border-slate-200 dark:border-slate-700 flex flex-col items-center transition-colors">
+        <div className="w-16 h-16 rounded-2xl bg-[#0D1E36] dark:bg-slate-700 flex items-center justify-center mb-6 shadow-md shadow-[#0D1E36]/30">
           <GraduationCap className="w-8 h-8 text-white" />
         </div>
         
-        <h1 className="text-4xl font-extrabold tracking-tight mb-2 text-[#0D1E36] [text-shadow:2px_2px_0px_#cbd5e1,4px_4px_0px_#94a3b8,5px_5px_4px_rgba(0,0,0,0.15)]">
+        <h1 className="text-4xl font-extrabold tracking-tight mb-2 text-[#0D1E36] dark:text-white [text-shadow:2px_2px_0px_#cbd5e1,4px_4px_0px_#94a3b8,5px_5px_4px_rgba(0,0,0,0.15)] dark:[text-shadow:1px_1px_0px_rgba(0,0,0,0.5),2px_2px_0px_rgba(0,0,0,0.8)]">
           Explain<span className="text-[#E97426]">X</span>
         </h1>
-        <p className="text-slate-500 text-center mb-8 text-sm font-medium">
+        <p className="text-slate-500 dark:text-slate-300 text-center mb-8 text-sm font-medium">
           Sign in to access specific chemical engineering tutorial solutions.
         </p>
 

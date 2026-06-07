@@ -27,9 +27,9 @@ export default function LessonOverview({ lesson, onUpdateOverview }: LessonOverv
   };
 
   return (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col group" id="lesson-overview-card">
-      <div className="flex items-center justify-between mb-3 border-b border-slate-50 pb-2.5" id="overview-card-header">
-        <h3 className="text-base font-bold text-slate-900 font-sans tracking-tight">
+    <div className="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-md border border-slate-200 dark:border-slate-700 flex flex-col group transition-colors" id="lesson-overview-card">
+      <div className="flex items-center justify-between mb-3 border-b border-slate-50 dark:border-slate-700 pb-2.5" id="overview-card-header">
+        <h3 className="text-base font-bold text-slate-900 dark:text-white font-sans tracking-tight">
           Lesson Overview
         </h3>
         

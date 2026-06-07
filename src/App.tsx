@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { auth, db } from './lib/firebase';
+import { auth, db, OperationType, handleFirestoreError } from './lib/firebase';
 import { onAuthStateChanged, User, signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, collection, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { INITIAL_COURSES } from './data';
 import { Module, Lesson } from './types';
 import Sidebar from './components/Sidebar';
@@ -16,15 +16,82 @@ import AuthScreen from './components/AuthScreen';
 import OnboardingScreen from './components/OnboardingScreen';
 import SettingsScreen from './components/SettingsScreen';
 import LessonComments from './components/LessonComments';
+import AdminScreen from './components/AdminScreen';
 
 export default function App() {
   const [courses, setCourses] = useState(INITIAL_COURSES);
   const [activeCourseId, setActiveCourseId] = useState<string>('thermo-ii');
+  const [isAdmin, setIsAdmin] = useState(false);
   
   // Auth states
   const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+
+  // Lesson completions set tracking per-user
+  const [completedLessonIds, setCompletedLessonIds] = useState<Set<string>>(new Set());
+
+  // Real-time course fetch and admin role synchronization
+  useEffect(() => {
+    if (!user) return;
+
+    // Set Admin Role
+    const checkRole = () => {
+      const simulated = localStorage.getItem('simulate_admin') === 'true';
+      if (user.email === 'richmond006mensah@gmail.com' || simulated) {
+        setIsAdmin(true);
+      } else {
+        setIsAdmin(false);
+      }
+    };
+    checkRole();
+
+    // Fetch Completed Lessons from localStorage to keep it personal
+    try {
+      const storedCompletion = localStorage.getItem(`completed_lessons_${user.uid}`);
+      if (storedCompletion) {
+        setCompletedLessonIds(new Set(JSON.parse(storedCompletion)));
+      } else {
+        setCompletedLessonIds(new Set());
+      }
+    } catch (e) {
+      console.error("Load completions fail:", e);
+    }
+
+    // Subscribe to shared courses list in firestore
+    const coursesCollection = collection(db, 'courses');
+    const unsubscribe = onSnapshot(coursesCollection, async (snapshot) => {
+      if (snapshot.empty) {
+        // Build the Initial Seed to database so the database is populated on first login
+        try {
+          for (const [courseId, courseData] of Object.entries(INITIAL_COURSES)) {
+            await setDoc(doc(db, 'courses', courseId), {
+              id: courseId,
+              title: courseData.title,
+              modules: courseData.modules
+            });
+          }
+        } catch (err) {
+          console.error("Courses seeding issue:", err);
+        }
+      } else {
+        const loaded: { [courseId: string]: { title: string; modules: Module[] } } = {};
+        snapshot.forEach((doc) => {
+          const data = doc.data();
+          loaded[doc.id] = {
+            title: data.title || '',
+            modules: data.modules || []
+          };
+        });
+        setCourses(loaded);
+      }
+    }, (error) => {
+      console.error("Courses onSnapshot error", error);
+      handleFirestoreError(error, OperationType.LIST, 'courses');
+    });
+
+    return () => unsubscribe();
+  }, [user]);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -44,48 +111,58 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // Set default active lesson to the 5-minute Platform Orientation & Course Overview video
-  const [activeLesson, setActiveLesson] = useState<Lesson>(INITIAL_COURSES['thermo-ii'].modules[0].lessons[0]);
+  // Safe default lesson check
+  const activeCourse = courses[activeCourseId] || INITIAL_COURSES['thermo-ii'];
+  const initialLesson = activeCourse?.modules?.[0]?.lessons?.[0] || INITIAL_COURSES['thermo-ii'].modules[0].lessons[0];
+  
+  const [activeLesson, setActiveLesson] = useState<Lesson>(initialLesson);
   const [isPlayingVideo, setIsPlayingVideo] = useState<boolean>(false);
   
   const [activeTab, setActiveTab] = useState<string>('home');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
+
+  // Sync activeLesson if a course swap occurs
+  useEffect(() => {
+    const course = courses[activeCourseId];
+    if (course && course.modules?.[0]?.lessons?.[0]) {
+      // Find matching lesson to keep the highlighted object up to date
+      const found = course.modules.flatMap(m => m.lessons).find(l => l.id === activeLesson.id);
+      if (found) {
+        setActiveLesson(found);
+      } else {
+        setActiveLesson(course.modules[0].lessons[0]);
+      }
+    }
+  }, [activeCourseId, courses]);
   
   const userEmail = user?.email || "";
   const userName = user?.displayName || "Student";
 
-  // Derive dynamic modular syllabus for currently active course
-  const modules = courses[activeCourseId]?.modules || [];
+  // Derive dynamic modular syllabus with mapped lesson completions per user
+  const resolvedModules = (courses[activeCourseId]?.modules || []).map((mod) => ({
+    ...mod,
+    lessons: (mod.lessons || []).map((less) => ({
+      ...less,
+      completed: completedLessonIds.has(less.id)
+    }))
+  }));
 
-  // Toggle complete state of a lesson by id
+  const modules = resolvedModules;
+
+  // Toggle complete state of a lesson by id (Persists in localStorage per user)
   const handleToggleComplete = (lessonId: string) => {
-    setCourses((prevCourses) => {
-      const activeObj = prevCourses[activeCourseId];
-      if (!activeObj) return prevCourses;
-
-      const updatedModules = activeObj.modules.map((mod) => ({
-        ...mod,
-        lessons: mod.lessons.map((less) => {
-          if (less.id === lessonId) {
-            const updated = { ...less, completed: !less.completed };
-            // Update active lesson if it is the toggled one
-            if (activeLesson.id === lessonId) {
-              setActiveLesson(updated);
-            }
-            return updated;
-          }
-          return less;
-        })
-      }));
-
-      return {
-        ...prevCourses,
-        [activeCourseId]: {
-          ...activeObj,
-          modules: updatedModules
-        }
-      };
+    setCompletedLessonIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(lessonId)) {
+        next.delete(lessonId);
+      } else {
+        next.add(lessonId);
+      }
+      if (user) {
+        localStorage.setItem(`completed_lessons_${user.uid}`, JSON.stringify(Array.from(next)));
+      }
+      return next;
     });
   };
 
@@ -94,89 +171,81 @@ export default function App() {
     handleToggleComplete(activeLesson.id);
   };
 
-  // Update Overview edit
-  const handleUpdateOverview = (lessonId: string, newOverview: string) => {
-    setCourses((prevCourses) => {
-      const activeObj = prevCourses[activeCourseId];
-      if (!activeObj) return prevCourses;
+  // Update Overview edit and write to Firestore Course document
+  const handleUpdateOverview = async (lessonId: string, newOverview: string) => {
+    const activeObj = courses[activeCourseId];
+    if (!activeObj) return;
 
-      const updatedModules = activeObj.modules.map((mod) => ({
-        ...mod,
-        lessons: mod.lessons.map((less) => {
-          if (less.id === lessonId) {
-            const updated = { ...less, overview: newOverview };
-            if (activeLesson.id === lessonId) {
-              setActiveLesson(updated);
-            }
-            return updated;
-          }
-          return less;
-        })
-      }));
-
-      return {
-        ...prevCourses,
-        [activeCourseId]: {
-          ...activeObj,
-          modules: updatedModules
+    const updatedModules = activeObj.modules.map((mod) => ({
+      ...mod,
+      lessons: (mod.lessons || []).map((less) => {
+        if (less.id === lessonId) {
+          return { ...less, overview: newOverview };
         }
-      };
-    });
+        return less;
+      })
+    }));
+
+    try {
+      await updateDoc(doc(db, 'courses', activeCourseId), {
+        modules: updatedModules
+      });
+    } catch (e) {
+      console.error("Overview update fail:", e);
+    }
   };
 
-  // Adding uploaded movie lesson
-  const handleAddLesson = (moduleId: string, lessonData: { title: string; duration: string; overview: string }) => {
+  // Adding uploaded movie lesson and persisting to Firestore
+  const handleAddLesson = async (moduleId: string, lessonData: { title: string; duration: string; overview: string }) => {
     const newLesson: Lesson = {
       id: `l_custom_${Date.now()}`,
       title: lessonData.title,
       duration: lessonData.duration,
       completed: false,
       overview: lessonData.overview,
-      thumbnail: '/src/assets/images/teacher_react_lesson_1780368326324.png',
+      thumbnail: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop',
       resources: [
         { id: `r_custom_s_${Date.now()}`, name: 'Lesson_Slides.pdf', type: 'pdf', url: '#' },
         { id: `r_custom_z_${Date.now()}`, name: 'Completed_Workspace_Snippet.zip', type: 'zip', url: '#' }
       ]
     };
 
-    setCourses((prevCourses) => {
-      const activeObj = prevCourses[activeCourseId];
-      if (!activeObj) return prevCourses;
+    const activeObj = courses[activeCourseId];
+    if (!activeObj) return;
 
-      const updatedModules = activeObj.modules.map((mod) => {
-        if (mod.id === moduleId) {
-          return {
-            ...mod,
-            lessons: [...mod.lessons, newLesson]
-          };
-        }
-        return mod;
-      });
-
-      return {
-        ...prevCourses,
-        [activeCourseId]: {
-          ...activeObj,
-          modules: updatedModules
-        }
-      };
+    const updatedModules = activeObj.modules.map((mod) => {
+      if (mod.id === moduleId) {
+        return {
+          ...mod,
+          lessons: [...(mod.lessons || []), newLesson]
+        };
+      }
+      return mod;
     });
+
+    try {
+      await updateDoc(doc(db, 'courses', activeCourseId), {
+        modules: updatedModules
+      });
+    } catch (e) {
+      console.error("Error adding lesson to firestore:", e);
+    }
   };
 
   // Active Course specific counts
   const allLessons = modules.flatMap((m) => m.lessons);
   const totalLessonsCount = allLessons.length;
-  const completedLessonsCount = allLessons.filter((l) => l.completed).length;
+  const completedLessonsCount = allLessons.filter((l) => completedLessonIds.has(l.id)).length;
   const completionPercentage = totalLessonsCount > 0 ? Math.round((completedLessonsCount / totalLessonsCount) * 100) : 0;
 
   // Compute stats across all courses for listing
   const getCourseProgresses = () => {
     const progresses: { [key: string]: number } = {};
     Object.keys(courses).forEach((key) => {
-      const ms = courses[key].modules;
-      const ls = ms.flatMap((m) => m.lessons);
+      const ms = courses[key].modules || [];
+      const ls = ms.flatMap((m) => m.lessons || []);
       const total = ls.length;
-      const completed = ls.filter((l) => l.completed).length;
+      const completed = ls.filter((l) => completedLessonIds.has(l.id)).length;
       progresses[key] = total > 0 ? Math.round((completed / total) * 100) : 0;
     });
     return progresses;
@@ -193,6 +262,7 @@ export default function App() {
     duration: activeLesson.solvedDuration ? activeLesson.solvedDuration : activeLesson.duration,
     overview: activeLesson.solvedOverview ? activeLesson.solvedOverview : activeLesson.overview,
     resources: activeLesson.solvedResources ? activeLesson.solvedResources : activeLesson.resources,
+    completed: completedLessonIds.has(activeLesson.id)
   };
 
   // Switch course action
@@ -237,20 +307,28 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans select-none" id="learnflow-app-root">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 flex flex-col font-sans select-none transition-colors duration-200" id="learnflow-app-root">
       <div className="flex flex-1" id="main-content-row">
         {/* 2. Left Sidebar Navigation rail */}
         <Sidebar
           activeTab={activeTab}
-          setActiveTab={(tab) => {
+          setActiveTab={async (tab) => {
             if (tab === 'logout') {
               if (confirm("Are you sure you want to log out from ExplainX?")) {
-                signOut(auth);
+                try {
+                  await signOut(auth);
+                  setActiveTab('home');
+                } catch (error) {
+                  console.error('Logout error:', error);
+                }
               }
             } else {
               setActiveTab(tab);
             }
           }}
+          userName={userName}
+          userEmail={userEmail}
+          isAdmin={isAdmin}
         />
 
         {/* 3. Render Area Pane */}
@@ -330,6 +408,22 @@ export default function App() {
               </motion.div>
             )}
 
+            {activeTab === 'admin' && (
+              <motion.div
+                key="admin"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              >
+                <AdminScreen
+                  courses={courses}
+                  setCourses={setCourses}
+                  isAdmin={isAdmin}
+                />
+              </motion.div>
+            )}
+
 
 
              {activeTab === 'dashboard' && (
@@ -343,9 +437,9 @@ export default function App() {
                 id="dashboard-view-wrapper"
               >
                 {/* Inner Breadcrumb and Title line */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between p-5 bg-white rounded-2xl border border-slate-100 shadow-sm gap-4" id="classroom-sub-header">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between p-5 bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-md gap-4 transition-colors" id="classroom-sub-header">
                   <div className="text-left" id="breadcrumb-box">
-                    <h1 className="text-xl font-extrabold text-slate-900 font-sans tracking-tight">{courses[activeCourseId]?.title || 'Chemical Engineering'} Learning Studio</h1>
+                    <h1 className="text-xl font-extrabold text-slate-900 dark:text-white font-sans tracking-tight">{courses[activeCourseId]?.title || 'Chemical Engineering'} Learning Studio</h1>
                     <p className="text-xs text-slate-500 font-semibold font-sans mt-0.5">
                       My Courses <span className="text-slate-400 mx-1">&gt;</span> {courses[activeCourseId]?.title || 'Active Course'} <span className="text-slate-400 mx-1">&gt;</span> {activeLesson.title} <span className="text-slate-400 mx-1">&gt;</span> <span className="text-[#00A896]">Tutorial Solutions</span>
                     </p>
@@ -378,7 +472,7 @@ export default function App() {
                             lesson={resolvedActiveLesson}
                             onUpdateOverview={handleUpdateOverview}
                           />
-                          <LessonComments lesson={resolvedActiveLesson} user={user} />
+                          <LessonComments lesson={resolvedActiveLesson} user={user} isAdmin={isAdmin} />
                         </div>
                       </div>
                     </div>

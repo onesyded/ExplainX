@@ -72,7 +72,7 @@ service cloud.firestore {
 
     match /comments/{commentId} {
       allow get: if isSignedIn();
-      allow list: if isSignedIn() && resource.data.courseId != null;
+      allow list: if isSignedIn();
       
       allow create: if isSignedIn() && isValidId(commentId) && isValidComment(incoming());
       
@@ -98,6 +98,11 @@ service cloud.firestore {
       );
       
       allow delete: if false;
+    }
+
+    match /courses/{courseId} {
+      allow read: if true;
+      allow write: if isSignedIn();
     }
   }
 }

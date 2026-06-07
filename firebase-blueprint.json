@@ -13,12 +13,59 @@
         "updatedAt": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "email", "year", "semester", "createdAt", "updatedAt"]
+    },
+    "Course": {
+      "title": "Course",
+      "description": "Syllabus and modules for educational course",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "modules": { "type": "array" }
+      },
+      "required": ["id", "title"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "Student comment on a specific lesson",
+      "type": "object",
+      "properties": {
+        "lessonId": { "type": "string" },
+        "courseId": { "type": "string" },
+        "userId": { "type": "string" },
+        "userName": { "type": "string" },
+        "text": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["lessonId", "courseId", "userId", "userName", "text", "createdAt", "updatedAt"]
+    },
+    "Admin": {
+      "title": "Admin",
+      "description": "Admin configuration data",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" }
+      },
+      "required": ["email"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },
       "description": "User profile containing onboarding data"
+    },
+    "/courses/{courseId}": {
+      "schema": { "$ref": "#/entities/Course" },
+      "description": "Information and materials for courses"
+    },
+    "/comments/{commentId}": {
+      "schema": { "$ref": "#/entities/Comment" },
+      "description": "Student discussion thread Comments"
+    },
+    "/admins/{adminId}": {
+      "schema": { "$ref": "#/entities/Admin" },
+      "description": "Admin email lists containing user access privileges"
     }
   }
 }

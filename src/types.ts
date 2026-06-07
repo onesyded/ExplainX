@@ -21,6 +21,9 @@ export interface Lesson {
   solvedThumbnail?: string;
   solvedCaptions?: { start: number; end: number; text: string }[];
   conceptCaptions?: { start: number; end: number; text: string }[];
+  videoUrl?: string;
+  solvedVideoUrl?: string;
+  isPremium?: boolean;
 }
 
 export interface Module {
