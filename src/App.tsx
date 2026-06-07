@@ -112,8 +112,18 @@ export default function App() {
   }, []);
 
   // Safe default lesson check
-  const activeCourse = courses[activeCourseId] || INITIAL_COURSES['thermo-ii'];
-  const initialLesson = activeCourse?.modules?.[0]?.lessons?.[0] || INITIAL_COURSES['thermo-ii'].modules[0].lessons[0];
+  const FALLBACK_LESSON: Lesson = {
+    id: 'placeholder',
+    title: 'No Lesson Selected',
+    duration: '0 min',
+    completed: false,
+    overview: 'Please select or add a course and lesson in the Admin panel.',
+    resources: [],
+    thumbnail: ''
+  };
+
+  const activeCourse = courses[activeCourseId] || Object.values(courses)[0];
+  const initialLesson = activeCourse?.modules?.[0]?.lessons?.[0] || FALLBACK_LESSON;
   
   const [activeLesson, setActiveLesson] = useState<Lesson>(initialLesson);
   const [isPlayingVideo, setIsPlayingVideo] = useState<boolean>(false);
@@ -122,9 +132,17 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
 
-  // Sync activeLesson if a course swap occurs
+  // Auto-set activeCourseId to first available course if current selection is invalid
   useEffect(() => {
-    const course = courses[activeCourseId];
+    const courseKeys = Object.keys(courses);
+    if (courseKeys.length > 0 && !courses[activeCourseId]) {
+      setActiveCourseId(courseKeys[0]);
+    }
+  }, [courses, activeCourseId]);
+
+  // Sync activeLesson if a course swap occurs or courses load
+  useEffect(() => {
+    const course = courses[activeCourseId] || Object.values(courses)[0];
     if (course && course.modules?.[0]?.lessons?.[0]) {
       // Find matching lesson to keep the highlighted object up to date
       const found = course.modules.flatMap(m => m.lessons).find(l => l.id === activeLesson.id);
@@ -343,6 +361,7 @@ export default function App() {
                 transition={{ duration: 0.25, ease: 'easeOut' }}
               >
                 <HomeView
+                  courses={courses}
                   onEnterClassroom={handleEnterClassroom}
                   completionPercentage={courseProgresses[activeCourseId]}
                   completedCount={allLessons.filter(l => l.completed).length}
@@ -366,6 +385,7 @@ export default function App() {
                 transition={{ duration: 0.25, ease: 'easeOut' }}
               >
                 <CoursesView
+                  courses={courses}
                   onEnterClassroom={handleEnterClassroom}
                   completionPercentage={courseProgresses[activeCourseId]}
                   completedCount={allLessons.filter(l => l.completed).length}

@@ -28,6 +28,7 @@ const itemVariants = {
 };
 
 interface HomeViewExtendedProps {
+  courses: { [courseId: string]: { title: string; modules: any[] } };
   onEnterClassroom: () => void;
   completionPercentage: number;
   completedCount: number;
@@ -41,21 +42,26 @@ interface HomeViewExtendedProps {
 }
 
 export function HomeView({ 
+  courses = {},
   onEnterClassroom, 
   completionPercentage, 
   completedCount, 
   totalCount, 
   userName = 'Richmond',
-  activeCourseId = 'thermo-ii',
-  activeCourseTitle = 'Thermodynamics II',
+  activeCourseId = '',
+  activeCourseTitle = '',
   onSelectCourse,
   courseProgresses = {}
 }: HomeViewExtendedProps) {
-  const quickCourses = [
-    { id: 'thermo-ii', title: 'Thermodynamics II', iconColor: 'text-[#E97426]' },
-    { id: 'cre', title: 'Chemical Reaction Engineering (CRE)', iconColor: 'text-amber-500' },
-    { id: 'heat-transfer', title: 'Heat Transfer Processes', iconColor: 'text-emerald-500' }
-  ];
+  const quickCourses = Object.keys(courses).map((id, index) => {
+    const colors = ['text-[#E97426]', 'text-amber-500', 'text-[#00A896]', 'text-indigo-500', 'text-pink-500'];
+    const iconColor = colors[index % colors.length];
+    return {
+      id,
+      title: courses[id]?.title || 'Untitled Course',
+      iconColor
+    };
+  });
 
   return (
     <motion.div 
@@ -84,122 +90,138 @@ export function HomeView({
           </motion.span>
           <h2 className="text-3xl font-extrabold font-sans tracking-tight">Welcome back, {userName}!</h2>
           <p className="text-sm text-slate-300 leading-relaxed font-medium">
-            Continue where you left off. You are making rapid progress through your Chemical Engineering modules. Keep the streak active!
+            Continue where you left off. Access your personalized learning dashboard of active design studies and technical courses.
           </p>
         </div>
       </motion.div>
 
       {/* Main Grid: Ongoing Class and stats */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="home-blocks-grid">
-        {/* Core Enrolled Classroom */}
+      {Object.keys(courses).length === 0 ? (
         <motion.div 
           variants={itemVariants}
-          whileHover={{ y: -3 }}
-          className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_40px_rgba(13,30,54,0.08)] border border-slate-100 lg:col-span-2 flex flex-col justify-between transition-all duration-300" 
-          id="core-class-card"
+          className="bg-white dark:bg-slate-800 rounded-2xl p-12 text-center border border-slate-150 dark:border-slate-700 shadow-[0_8px_30px_rgb(0,0,0,0.02)] flex flex-col items-center justify-center space-y-4"
         >
-          <div className="space-y-3.5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-bold text-[#E97426] tracking-wider font-mono">SELECTED WORKSPACE</span>
-              <div className="flex items-center space-x-1.5 text-amber-500 text-xs font-bold">
-                <Star className="w-4 h-4 fill-current text-yellow-500" />
-                <span>Active Classroom</span>
-              </div>
-            </div>
-            <h3 className="text-xl font-bold text-slate-950 font-sans leading-tight tracking-tight">{activeCourseTitle}</h3>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Experience focused learning with fully solved tutorial question walkthroughs.
-            </p>
-
-            {/* Quick progress bar */}
-            <div className="space-y-2 pt-2">
-              <div className="flex justify-between items-center text-xs font-bold">
-                <span className="text-slate-500">Course Progress</span>
-                <span className="text-[#00A896] bg-[#00A896]/10 px-2 py-0.5 rounded-md">{completionPercentage}% Completed</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${completionPercentage}%` }}
-                  transition={{ duration: 0.8, ease: 'easeOut' }}
-                  className="bg-[#00A896] h-full rounded-full shadow-sm shadow-[#00A896]/20" 
-                />
-              </div>
-            </div>
+          <div className="w-16 h-16 rounded-full bg-slate-50 dark:bg-slate-700/50 flex items-center justify-center text-slate-400 dark:text-slate-300">
+            <BookOpen className="w-8 h-8" />
           </div>
-
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onEnterClassroom}
-            className="mt-6 w-full py-3 bg-[#0D1E36] hover:bg-[#153158] text-white rounded-xl text-sm font-bold tracking-wide transition-all duration-200 shadow-md shadow-[#0D1E36]/15 hover:shadow-lg hover:shadow-[#0D1E36]/30 flex items-center justify-center space-x-2 cursor-pointer"
-            id="entry-cmd"
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white">No Courses Created Yet</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 max-w-md leading-relaxed">
+            There are currently no learning courses loaded in the app. Go to the <span className="font-semibold text-[#E97426]">Admin Panel</span> in the sidebar to define courses, modules, and lessons dynamically!
+          </p>
+        </motion.div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" id="home-blocks-grid">
+          {/* Core Enrolled Classroom */}
+          <motion.div 
+            variants={itemVariants}
+            whileHover={{ y: -3 }}
+            className="bg-white rounded-2xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_15px_40px_rgba(13,30,54,0.08)] border border-slate-100 lg:col-span-2 flex flex-col justify-between transition-all duration-300" 
+            id="core-class-card"
           >
-            <Compass className="w-4 h-4" />
-            <span>Enter {activeCourseTitle} Learning Studio</span>
-          </motion.button>
-        </motion.div>
+            <div className="space-y-3.5">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold text-[#E97426] tracking-wider font-mono">SELECTED WORKSPACE</span>
+                <div className="flex items-center space-x-1.5 text-amber-500 text-xs font-bold">
+                  <Star className="w-4 h-4 fill-current text-yellow-500" />
+                  <span>Active Classroom</span>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-slate-950 font-sans leading-tight tracking-tight">{activeCourseTitle || 'Your Selection'}</h3>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Experience focused learning with fully solved tutorial question walkthroughs.
+              </p>
 
-        {/* Highlight achievements & Course switcher */}
-        <motion.div 
-          variants={itemVariants}
-          className="bg-slate-50 rounded-2xl p-6 flex flex-col justify-between border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)]" 
-          id="home-highlights"
-        >
-          <div className="space-y-4 text-left">
-            <h4 className="text-xs font-bold text-slate-800 font-sans tracking-wide uppercase">Launch another course</h4>
-            
-            <div className="space-y-2">
-              {quickCourses.map((c) => {
-                const isCurrent = c.id === activeCourseId;
-                const prog = courseProgresses[c.id] !== undefined ? courseProgresses[c.id] : 0;
-                return (
-                  <motion.button 
-                    key={c.id}
-                    onClick={() => {
-                      if (onSelectCourse) {
-                        onSelectCourse(c.id);
-                      }
-                    }}
-                    whileHover={{ x: 3 }}
-                    className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${
-                      isCurrent 
-                        ? 'bg-[#0D1E36]/5 border-[#0D1E36]/20 hover:bg-[#0D1E36]/10' 
-                        : 'bg-white border-slate-100 hover:border-slate-300'
-                    }`}
-                  >
-                    <div className="flex items-start space-x-3 max-w-[70%]">
-                      <div className={`p-2 rounded-lg ${isCurrent ? 'bg-[#0D1E36]/15' : 'bg-slate-50'}`}>
-                        <BookOpen className={`w-4 h-4 ${c.iconColor}`} />
-                      </div>
-                      <div className="truncate">
-                        <p className="text-xs font-bold text-slate-800 leading-tight truncate">{c.title}</p>
-                        <p className="text-[10px] text-slate-400 mt-1">{isCurrent ? 'Active Studio' : 'Enrolled'}</p>
-                      </div>
-                    </div>
-                    <span className="text-xs font-bold text-[#00A896] bg-[#00A896]/10 px-2 py-0.5 rounded">
-                      {prog}%
-                    </span>
-                  </motion.button>
-                );
-              })}
-            </div>
-
-            <div className="pt-2 border-t border-slate-200/60 flex items-start space-x-2.5">
-              <Award className="w-4 h-4 text-[#E97426] shrink-0 mt-0.5" />
-              <div>
-                <p className="text-[10px] text-slate-400 font-bold leading-tight">Total certified status</p>
-                <p className="text-[10px] text-slate-500 mt-0.5">{completedCount} Lectures cleared across standard syllabi.</p>
+              {/* Quick progress bar */}
+              <div className="space-y-2 pt-2">
+                <div className="flex justify-between items-center text-xs font-bold">
+                  <span className="text-slate-500">Course Progress</span>
+                  <span className="text-[#00A896] bg-[#00A896]/10 px-2 py-0.5 rounded-md">{completionPercentage}% Completed</span>
+                </div>
+                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${completionPercentage}%` }}
+                    transition={{ duration: 0.8, ease: 'easeOut' }}
+                    className="bg-[#00A896] h-full rounded-full shadow-sm shadow-[#00A896]/20" 
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
-      </div>
+
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={onEnterClassroom}
+              className="mt-6 w-full py-3 bg-[#0D1E36] hover:bg-[#153158] text-white rounded-xl text-sm font-bold tracking-wide transition-all duration-200 shadow-md shadow-[#0D1E36]/15 hover:shadow-lg hover:shadow-[#0D1E36]/30 flex items-center justify-center space-x-2 cursor-pointer"
+              id="entry-cmd"
+            >
+              <Compass className="w-4 h-4" />
+              <span>Enter Classroom Studio</span>
+            </motion.button>
+          </motion.div>
+
+          {/* Highlight achievements & Course switcher */}
+          <motion.div 
+            variants={itemVariants}
+            className="bg-slate-50 rounded-2xl p-6 flex flex-col justify-between border border-slate-100 shadow-[0_4px_20px_rgb(0,0,0,0.02)]" 
+            id="home-highlights"
+          >
+            <div className="space-y-4 text-left">
+              <h4 className="text-xs font-bold text-slate-800 font-sans tracking-wide uppercase">Launch another course</h4>
+              
+              <div className="space-y-2">
+                {quickCourses.map((c) => {
+                  const isCurrent = c.id === activeCourseId;
+                  const prog = courseProgresses[c.id] !== undefined ? courseProgresses[c.id] : 0;
+                  return (
+                    <motion.button 
+                      key={c.id}
+                      onClick={() => {
+                        if (onSelectCourse) {
+                          onSelectCourse(c.id);
+                        }
+                      }}
+                      whileHover={{ x: 3 }}
+                      className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all text-left ${
+                        isCurrent 
+                          ? 'bg-[#0D1E36]/5 border-[#0D1E36]/20 hover:bg-[#0D1E36]/10' 
+                          : 'bg-white border-slate-100 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-start space-x-3 max-w-[70%] bg-transparent border-0 p-0 shadow-none">
+                        <div className={`p-2 rounded-lg ${isCurrent ? 'bg-[#0D1E36]/15' : 'bg-slate-50'}`}>
+                          <BookOpen className={`w-4 h-4 ${c.iconColor}`} />
+                        </div>
+                        <div className="truncate">
+                          <p className="text-xs font-bold text-slate-800 leading-tight truncate">{c.title}</p>
+                          <p className="text-[10px] text-slate-400 mt-1">{isCurrent ? 'Active Studio' : 'Enrolled'}</p>
+                        </div>
+                      </div>
+                      <span className="text-xs font-bold text-[#00A896] bg-[#00A896]/10 px-2 py-0.5 rounded shrink-0">
+                        {prog}%
+                      </span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+
+              <div className="pt-2 border-t border-slate-200/60 flex items-start space-x-2.5">
+                <Award className="w-4 h-4 text-[#E97426] shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[10px] text-slate-400 font-bold leading-tight">Total certified status</p>
+                  <p className="text-[10px] text-slate-500 mt-0.5">{completedCount} Lectures cleared across available syllabi.</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   );
 }
 
 interface CoursesViewExtendedProps {
+  courses: { [courseId: string]: { title: string; modules: any[] } };
   onEnterClassroom: () => void;
   completionPercentage: number;
   completedCount: number;
@@ -211,43 +233,27 @@ interface CoursesViewExtendedProps {
 }
 
 export function CoursesView({ 
+  courses = {},
   onEnterClassroom, 
   activeCourseId, 
   onSelectCourse, 
   courseProgresses = {} 
 }: CoursesViewExtendedProps) {
-  const catalog = [
-    {
-      id: 'thermo-ii',
-      title: 'Thermodynamics II',
-      desc: 'Master phase equilibrium formulations, cubic equations of state (PR & SRK), activity coefficient models, and chemical reaction equilibrium.',
-      instructor: 'Teacher Alex',
+  const catalog = Object.keys(courses).map((courseId) => {
+    const course = courses[courseId];
+    const modulesCount = course.modules?.length || 0;
+    const lessonsCount = course.modules?.flatMap((m: any) => m.lessons || []).length || 0;
+    return {
+      id: courseId,
+      title: course.title || 'Untitled Course',
+      desc: `${modulesCount} modules • ${lessonsCount} lessons on-demand with interactive simulation tutorials.`,
+      instructor: 'Lead Instructor',
       enrolled: true,
-      progress: courseProgresses['thermo-ii'] !== undefined ? courseProgresses['thermo-ii'] : 60,
-      rating: '4.9',
-      duration: '14h playback'
-    },
-    {
-      id: 'cre',
-      title: 'Chemical Reaction Engineering (CRE)',
-      desc: 'Formulate reactor design equations for batch, CSTR, and PFR configurations, analyze homogeneous reaction kinetics, and determine steady thermal states.',
-      instructor: 'Teacher Alex',
-      enrolled: true,
-      progress: courseProgresses['cre'] !== undefined ? courseProgresses['cre'] : 50,
-      rating: '4.8',
-      duration: '16h playback'
-    },
-    {
-      id: 'heat-transfer',
-      title: 'Heat Transfer Processes',
-      desc: 'Analyze systems with steady state heat conduction, force & free convection, phase-change boiling heat transfer coefficients, and blackbody radiation.',
-      instructor: 'Marcus Aurelius',
-      enrolled: true,
-      progress: courseProgresses['heat-transfer'] !== undefined ? courseProgresses['heat-transfer'] : 0,
+      progress: courseProgresses[courseId] !== undefined ? courseProgresses[courseId] : 0,
       rating: '5.0',
-      duration: '12h playback'
-    }
-  ];
+      duration: `${lessonsCount * 10} mins study time`
+    };
+  });
 
   return (
     <motion.div 
@@ -263,82 +269,97 @@ export function CoursesView({
       </motion.div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="catalog-card-grid">
-        {catalog.map((course) => (
+        {catalog.length === 0 ? (
           <motion.div 
             variants={itemVariants}
-            whileHover={{ y: -5, boxShadow: "0 20px 40px rgba(13,30,54,0.08)" }}
-            key={course.id} 
-            className="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[300px] transition-all duration-300" 
-            id={`ccard-${course.id}`}
+            className="bg-white dark:bg-slate-800 border border-slate-150 dark:border-slate-700 rounded-2xl p-12 text-center shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col items-center justify-center space-y-4 col-span-full"
           >
-            <div className="space-y-3.5">
-              <div className="flex items-center justify-between">
-                <span className={`text-[9px] uppercase font-extrabold tracking-wider px-2.5 py-1 rounded-md ${
-                  course.enrolled ? 'bg-emerald-50 text-emerald-600 border border-emerald-500/10' : 'bg-slate-100 text-slate-500'
-                }`}>
-                  {course.enrolled ? 'Active' : 'Not Registered'}
-                </span>
-                <span className="text-slate-400 text-xs font-mono font-medium">{course.duration}</span>
+            <div className="w-16 h-16 rounded-full bg-slate-50 dark:bg-slate-700/50 flex items-center justify-center text-slate-400 dark:text-slate-300">
+              <BookOpen className="w-8 h-8" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Start Building Your Classroom</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 max-w-sm leading-relaxed">
+              No courses exist in the current workspace catalog. Head over to the <span className="font-semibold text-[#E97426]">Admin Panel</span> to populate your list of subjects!
+            </p>
+          </motion.div>
+        ) : (
+          catalog.map((course) => (
+            <motion.div 
+              variants={itemVariants}
+              whileHover={{ y: -5, boxShadow: "0 20px 40px rgba(13,30,54,0.08)" }}
+              key={course.id} 
+              className="bg-white border border-slate-100 rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)] flex flex-col justify-between min-h-[300px] transition-all duration-300" 
+              id={`ccard-${course.id}`}
+            >
+              <div className="space-y-3.5">
+                <div className="flex items-center justify-between">
+                  <span className={`text-[9px] uppercase font-extrabold tracking-wider px-2.5 py-1 rounded-md ${
+                    course.enrolled ? 'bg-emerald-50 text-emerald-600 border border-emerald-500/10' : 'bg-slate-100 text-slate-500'
+                  }`}>
+                    {course.enrolled ? 'Active' : 'Not Registered'}
+                  </span>
+                  <span className="text-slate-400 text-xs font-mono font-medium">{course.duration}</span>
+                </div>
+
+                <h3 className="text-base font-bold text-slate-950 font-sans tracking-tight leading-tight">
+                  {course.title}
+                </h3>
+                <p className="text-xs text-slate-500 leading-relaxed truncate-2-lines">
+                  {course.desc}
+                </p>
               </div>
 
-              <h3 className="text-base font-bold text-slate-950 font-sans tracking-tight leading-tight">
-                {course.title}
-              </h3>
-              <p className="text-xs text-slate-500 leading-relaxed truncate-2-lines">
-                {course.desc}
-              </p>
-            </div>
-
-            <div className="space-y-4 pt-4 mt-4 border-t border-slate-100" id={`ccard-ftr-${course.id}`}>
-              {course.enrolled ? (
-                <div className="space-y-1.5" id={`prog-${course.id}`}>
-                  <div className="flex justify-between items-center text-[10px] font-bold">
-                    <span className="text-slate-400">Progress</span>
-                    <span className="text-[#00A896] font-semibold">{course.progress}%</span>
+              <div className="space-y-4 pt-4 mt-4 border-t border-slate-100" id={`ccard-ftr-${course.id}`}>
+                {course.enrolled ? (
+                  <div className="space-y-1.5" id={`prog-${course.id}`}>
+                    <div className="flex justify-between items-center text-[10px] font-bold">
+                      <span className="text-slate-400">Progress</span>
+                      <span className="text-[#00A896] font-semibold">{course.progress}%</span>
+                    </div>
+                    <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                      <motion.div 
+                        initial={{ width: 0 }}
+                        animate={{ width: `${course.progress}%` }}
+                        transition={{ duration: 0.6, ease: 'easeOut' }}
+                        className="bg-[#00A896] h-full rounded-full" 
+                      />
+                    </div>
                   </div>
-                  <div className="w-full bg-slate-105 h-1.5 rounded-full overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${course.progress}%` }}
-                      transition={{ duration: 0.6, ease: 'easeOut' }}
-                      className="bg-[#00A896] h-full rounded-full" 
-                    />
-                  </div>
-                </div>
-              ) : (
-                <p className="text-xs text-slate-400 italic">Lectured by {course.instructor}</p>
-              )}
+                ) : (
+                  <p className="text-xs text-slate-400 italic">Lectured by {course.instructor}</p>
+                )}
 
-              {course.enrolled ? (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => {
-                    if (onSelectCourse) {
-                      onSelectCourse(course.id);
-                    }
-                    onEnterClassroom();
-                  }}
-                  className={`w-full py-2.5 text-white rounded-xl text-xs font-bold transition-all duration-250 cursor-pointer text-center shadow-md hover:shadow-lg ${
-                    activeCourseId === course.id 
-                      ? 'bg-[#E97426] hover:bg-[#cf6319] shadow-[#E97426]/10' 
-                      : 'bg-[#0D1E36] hover:bg-[#122b4d] shadow-[#0D1E36]/10'
-                  }`}
-                >
-                  {activeCourseId === course.id ? 'Resume Classroom' : 'Enter Classroom'}
-                </motion.button>
-              ) : (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full py-2.5 bg-slate-100 text-slate-705 hover:bg-slate-200 rounded-xl text-xs font-bold transition-all duration-250 cursor-pointer text-center"
-                >
-                  Purchase and Request Access
-                </motion.button>
-              )}
-            </div>
-          </motion.div>
-        ))}
+                {course.enrolled ? (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      if (onSelectCourse) {
+                        onSelectCourse(course.id);
+                      }
+                      onEnterClassroom();
+                    }}
+                    className={`w-full py-2.5 text-white rounded-xl text-xs font-bold transition-all duration-250 cursor-pointer text-center shadow-md hover:shadow-lg ${
+                      activeCourseId === course.id 
+                        ? 'bg-[#E97426] hover:bg-[#cf6319] shadow-[#E97426]/10' 
+                        : 'bg-[#0D1E36] hover:bg-[#122b4d] shadow-[#0D1E36]/10'
+                    }`}
+                  >
+                    {activeCourseId === course.id ? 'Resume Classroom' : 'Enter Classroom'}
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full py-2.5 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-xl text-xs font-bold transition-all duration-250 cursor-pointer text-center"
+                  >
+                    Purchase and Request Access
+                  </motion.button>
+                )}
+              </div>
+            </motion.div>
+          ))
+        )}
       </div>
     </motion.div>
   );

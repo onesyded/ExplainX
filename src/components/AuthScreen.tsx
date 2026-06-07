@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { auth, googleProvider } from '../lib/firebase';
 import { signInWithPopup } from 'firebase/auth';
-import { GraduationCap } from 'lucide-react';
 
 export default function AuthScreen() {
   const [error, setError] = useState<string>('');
@@ -20,8 +19,13 @@ export default function AuthScreen() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4 selection:bg-slate-200 transition-colors">
       <div className="max-w-md w-full bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-md border border-slate-200 dark:border-slate-700 flex flex-col items-center transition-colors">
-        <div className="w-16 h-16 rounded-2xl bg-[#0D1E36] dark:bg-slate-700 flex items-center justify-center mb-6 shadow-md shadow-[#0D1E36]/30">
-          <GraduationCap className="w-8 h-8 text-white" />
+        <div className="w-20 h-20 flex items-center justify-center mb-5 overflow-hidden filter dark:brightness-110">
+          <img
+            src="/src/assets/images/logo_3d_1780805779310.png"
+            alt="ExplainX Logo"
+            className="w-full h-full object-contain"
+            referrerPolicy="no-referrer"
+          />
         </div>
         
         <h1 className="text-4xl font-extrabold tracking-tight mb-2 text-[#0D1E36] dark:text-white [text-shadow:2px_2px_0px_#cbd5e1,4px_4px_0px_#94a3b8,5px_5px_4px_rgba(0,0,0,0.15)] dark:[text-shadow:1px_1px_0px_rgba(0,0,0,0.5),2px_2px_0px_rgba(0,0,0,0.8)]">

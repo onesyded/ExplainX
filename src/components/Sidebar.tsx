@@ -1,4 +1,4 @@
-import { Home, LayoutDashboard, Compass, FileText, User, BarChart3, LogOut, GraduationCap, Settings, ChevronUp } from 'lucide-react';
+import { Home, LayoutDashboard, Compass, FileText, User, BarChart3, LogOut, Settings, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useState } from 'react';
 
@@ -24,8 +24,13 @@ export default function Sidebar({ activeTab, setActiveTab, userName = "Student",
     <aside className="w-64 bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-700 min-h-screen flex flex-col select-none shrink-0 relative transition-colors duration-200" id="sidebar-left">
       {/* Brand Header */}
       <div className="h-16 flex items-center px-6 border-b border-slate-100 dark:border-slate-700 cursor-pointer transition-colors" onClick={() => setActiveTab('home')}>
-        <div className="w-8 h-8 rounded-xl bg-[#0D1E36] dark:bg-slate-700 flex items-center justify-center mr-3 shadow-md shadow-[#0D1E36]/20">
-          <GraduationCap className="w-5 h-5 text-white" />
+        <div className="w-11 h-11 flex items-center justify-center mr-1.5 overflow-hidden filter dark:brightness-110">
+          <img
+            src="/src/assets/images/logo_3d_1780805779310.png"
+            alt="ExplainX Logo"
+            className="w-full h-full object-contain"
+            referrerPolicy="no-referrer"
+          />
         </div>
         <span className="text-xl font-extrabold tracking-tight font-sans text-[#0D1E36] dark:text-white [text-shadow:1px_1px_0px_#cbd5e1,2px_2px_0px_#94a3b8,3px_3px_2px_rgba(0,0,0,0.15)] dark:[text-shadow:1px_1px_0px_rgba(0,0,0,0.5),2px_2px_0px_rgba(0,0,0,0.8)]">
           Explain<span className="text-[#E97426]">X</span>

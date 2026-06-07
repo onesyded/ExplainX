@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { db, OperationType, handleFirestoreError } from '../lib/firebase';
-import { collection, query, orderBy, onSnapshot, doc, setDoc, updateDoc, serverTimestamp, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, onSnapshot, doc, setDoc, updateDoc, serverTimestamp, getDocs, deleteDoc } from 'firebase/firestore';
 import { 
   Plus, FolderPlus, Film, BookOpen, MessageSquare, Check, HelpCircle, 
   Trash2, Layers, Video, FileText, ExternalLink, RefreshCw 
@@ -276,6 +276,57 @@ export default function AdminScreen({ courses, setCourses, isAdmin }: AdminScree
     }
   };
 
+  // Delete Selected Course permanently
+  const handleDeleteCourse = async () => {
+    if (!selectedCourseId) {
+      triggerStatus('error', 'Please select a course to delete.');
+      return;
+    }
+    const courseTitle = courses[selectedCourseId]?.title || 'Selected Course';
+    if (!window.confirm(`Are you sure you want to permanently delete "${courseTitle}"? This cannot be undone.`)) {
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await deleteDoc(doc(db, 'courses', selectedCourseId));
+      setSelectedCourseId('');
+      triggerStatus('success', `Course "${courseTitle}" was permanently deleted!`);
+    } catch (err: any) {
+      triggerStatus('error', 'Failed to delete course: ' + err.message);
+    }
+    setIsSaving(false);
+  };
+
+  // Complete clean up / Purge all Database Courses & Comments
+  const handlePurgeAllData = async () => {
+    if (!window.confirm("CRITICAL WARNING: Are you sure you want to permanently DELETE ALL courses, modules, lessons, and students comments from this Workspace? This action is IRREVERSIBLE.")) {
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // 1. Delete all courses documents
+      const coursesSnapshot = await getDocs(collection(db, 'courses'));
+      for (const courseDocRef of coursesSnapshot.docs) {
+        await deleteDoc(doc(db, 'courses', courseDocRef.id));
+      }
+
+      // 2. Delete all comments
+      const commentsSnapshot = await getDocs(collection(db, 'comments'));
+      for (const commentDocRef of commentsSnapshot.docs) {
+        await deleteDoc(doc(db, 'comments', commentDocRef.id));
+      }
+
+      setSelectedCourseId('');
+      setSelectedModuleId('');
+      triggerStatus('success', 'All workspace database data (courses, topics, discussions) was successfully purged! Yours app is now fully blank and fresh.');
+    } catch (err: any) {
+      triggerStatus('error', 'Purge operation failed: ' + err.message);
+    }
+    setIsSaving(false);
+  };
+
   const unansweredComments = studentComments.filter(c => !c.replyText);
 
   return (
@@ -427,6 +478,50 @@ export default function AdminScreen({ courses, setCourses, isAdmin }: AdminScree
                     <span>Create Chapter / Module</span>
                   </button>
                 </form>
+              </div>
+            </div>
+
+            {/* 3. Danger Zone / Cleanup Block */}
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-rose-200/50 dark:border-rose-950/40 shadow-lg transition-colors">
+              <div className="flex items-center space-x-2 mb-4 border-b border-rose-50 dark:border-rose-950 pb-2.5">
+                <Trash2 className="w-5 h-5 text-rose-500" />
+                <h3 className="font-extrabold text-[#0D1E36] dark:text-white tracking-tight text-base">Workspace Clean & Fresh Tools</h3>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="space-y-1.5 p-3.5 bg-rose-50/50 dark:bg-rose-950/10 rounded-xl border border-rose-100 dark:border-rose-950/30">
+                  <h4 className="text-xs font-bold text-rose-850 dark:text-rose-400">Manage Selected Course</h4>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-normal">
+                    Permanently delete the active course selected above ("{courses[selectedCourseId]?.title || 'None Selected'}"). This deletes all its Chapters and solved topics video walkthroughs.
+                  </p>
+                  
+                  <button
+                    onClick={handleDeleteCourse}
+                    disabled={isSaving || !selectedCourseId}
+                    type="button"
+                    className="w-full mt-2 bg-rose-600 hover:bg-rose-700 disabled:bg-slate-200 disabled:dark:bg-slate-700 disabled:text-slate-400 text-white font-semibold py-2 px-4 rounded-lg text-xs flex items-center justify-center space-x-2 transition-transform active:scale-95 cursor-pointer border-0"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Delete "{courses[selectedCourseId]?.title || 'Selected Course'}"</span>
+                  </button>
+                </div>
+
+                <div className="space-y-1.5 p-3.5 bg-amber-50/50 dark:bg-amber-950/10 rounded-xl border border-amber-100 dark:border-amber-950/30">
+                  <h4 className="text-xs font-bold text-amber-800 dark:text-amber-400 font-sans">Full Workspace Purge</h4>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400 leading-normal">
+                    Clears the entire Firestore database of any courses, lessons, lectures, comments, and discussions. Keeps the app completely empty and fresh for fresh customized contents.
+                  </p>
+                  
+                  <button
+                    onClick={handlePurgeAllData}
+                    disabled={isSaving}
+                    type="button"
+                    className="w-full mt-2 bg-slate-900 dark:bg-black hover:bg-slate-800 text-white font-semibold py-2 px-4 rounded-lg text-xs flex items-center justify-center space-x-2 transition-transform active:scale-95 cursor-pointer border-0"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>Purge & Clean All DB Data</span>
+                  </button>
+                </div>
               </div>
             </div>
 
