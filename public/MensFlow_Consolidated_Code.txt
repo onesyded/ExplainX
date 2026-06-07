@@ -1,0 +1,2038 @@
+================================================================================
+MENSFLOW CONSOLIDATED SOURCE CODE
+================================================================================
+This file contains the consolidated, complete codebase for the "MensFlow" Course Learning Dashboard.
+You can copy codeblocks directly or download this file by accessing it in your left editor sidebar of Google AI Studio. 
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS:
+1.  /src/types.ts
+2.  /src/data.ts
+3.  /src/index.css
+4.  /src/main.tsx
+5.  /src/App.tsx
+6.  /src/components/Header.tsx
+7.  /src/components/Sidebar.tsx
+8.  /src/components/VideoPlayer.tsx
+9.  /src/components/CourseContent.tsx
+10. /src/components/LessonOverview.tsx
+11. /src/components/ResourcesSection.tsx
+12. /src/components/CourseProgressCard.tsx
+13. /src/components/UploadVideoModal.tsx
+14. /src/components/OtherViews.tsx
+================================================================================
+
+
+================================================================================
+1. FILE: /src/types.ts
+================================================================================
+export interface Resource {
+  id: string;
+  name: string;
+  type: 'pdf' | 'zip' | 'link';
+  url: string;
+}
+
+export interface Lesson {
+  id: string;
+  title: string;
+  duration: string;
+  completed: boolean;
+  overview: string;
+  resources: Resource[];
+  thumbnail: string;
+}
+
+export interface Module {
+  id: string;
+  title: string;
+  lessons: Lesson[];
+}
+
+
+================================================================================
+2. FILE: /src/data.ts
+================================================================================
+import { Module } from './types';
+
+export const INITIAL_MODULES: Module[] = [
+  {
+    id: 'm1',
+    title: 'Module 1: Equations of State & Pure Phases',
+    lessons: [
+      {
+        id: 'l1_1',
+        title: 'Introduction to PVT Behavior & Pure Fluids',
+        duration: '11:53',
+        completed: true,
+        overview: 'This lecture covers the fundamental PVT behavior of pure fluids, volumetric properties, critical phenomena, and the principle of corresponding states. We review general deviation behavior from ideal gas assumptions and model compressibility factors.',
+        thumbnail: '/src/assets/images/teacher_react_lesson_1780368326324.png',
+        resources: [
+          { id: 'r1', name: 'Fluid_PVT_Notes.pdf', type: 'pdf', url: '#' },
+          { id: 'r2', name: 'Equation_of_State_Syllabus.pdf', type: 'pdf', url: '#' }
+        ]
+      },
+      {
+        id: 'l1_2',
+        title: 'Solving Cubic EOS: Peng-Robinson vs. SRK',
+        duration: '18:45',
+        completed: true,
+        overview: 'A deep comparative analysis of modern cubic equations of state. You will learn to formulate parameter attractions, solve volume roots analytically or through numerical Newton-Raphson solvers, and compute vapor pressures with high accuracy.',
+        thumbnail: '/src/assets/images/teacher_react_lesson_1780368326324.png',
+        resources: [
+          { id: 'r3', name: 'Peng_Robinson_Solver_Code.zip', type: 'zip', url: '#' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'm2',
+    title: 'Module 2: Mixture Vapor-Liquid Equilibrium (VLE)',
+    lessons: [
+      {
+        id: 'l2_1',
+        title: 'Formulating Phase Equilibrium & Raoult\'s Law',
+        duration: '14:20',
+        completed: true,
+        overview: 'In this section, we study the thermodynamic criteria for multi-phase multi-component equilibrium using chemical potential equality. We introduce standard binary pressure-composition (P-x-y) and temperature-composition (T-x-y) diagrams representing ideal systems.',
+        thumbnail: '/src/assets/images/teacher_react_lesson_1780368326324.png',
+        resources: [
+          { id: 'r4', name: 'Ideal_VLE_Phase_Diagrams.pdf', type: 'pdf', url: '#' },
+          { id: 'r5', name: 'Binary_Calculations_Guide.pdf', type: 'pdf', url: '#' }
+        ]
+      },
+      {
+        id: 'l2_2',
+        title: 'Non-Ideal Systems & Activity Coefficient Models',
+        duration: '22:15',
+        completed: true,
+        overview: 'Moving beyond ideal mixtures. Study excess Gibbs free energy definitions, Margules formulation, van Laar models, and non-random two-liquid (NRTL) expressions. Learn to determine system azeotropes and model activity coefficients from empirical data points.',
+        thumbnail: '/src/assets/images/teacher_react_lesson_1780368326324.png',
+        resources: [
+          { id: 'r6', name: 'Activity_Coefficients_Lecture.pdf', type: 'pdf', url: '#' }
+        ]
+      },
+      {
+        id: 'l2_3',
+        title: 'Fugacity Coefficients & High-Pressure VLE',
+        duration: '25:46',
+        completed: true,
+        overview: 'Deep dive into high-pressure vapor-liquid calculations using the dual-fugacity formulation (phi-phi approach). We will examine partial molar properties, chemical species fugacity definitions under multi-phase pressures, and computational bubble/dew calculations.',
+        thumbnail: '/src/assets/images/teacher_react_lesson_1780368326324.png',
+        resources: [
+          { id: 'r7', name: 'Fugacity_Dual_Formulation_Handout.pdf', type: 'pdf', url: '#' },
+          { id: 'r8', name: 'VLE_HighPressure_NumericalSolver.zip', type: 'zip', url: '#' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'm3',
+    title: 'Module 3: Chemical Reaction Equilibria (Slides)',
+    lessons: [
+      {
+        id: 'l3_1',
+        title: 'Thermodynamics of Reaction Equilibrium',
+        duration: '19:30',
+        completed: false,
+        overview: 'Analysis of equilibrium constants, standard Gibbs energy changes of reactions, and Le Chatelier principle adjustments. Download and follow along with the specific calculation slides for single and multi-reaction chemical processes.',
+        thumbnail: '/src/assets/images/teacher_react_lesson_1780368326324.png',
+        resources: [
+          { id: 'r9', name: 'Chemical_Equilibria_Theory.pdf', type: 'pdf', url: '#' }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'm4',
+    title: 'Module 4: Advanced Cycles & Power Efficiency',
+    lessons: [
+      {
+        id: 'l4_1',
+        title: 'Dynamic Rankine and Brayton Cycle Efficiency',
+        duration: '21:50',
+        completed: false,
+        overview: 'Thermodynamic modeling for high-temperature turbine performance. We cover reheat modifications, regenerative feed-water heating, thermal limits, and real-world system losses to calculate absolute cycle efficiency.',
+        thumbnail: '/src/assets/images/teacher_react_lesson_1780368326324.png',
+        resources: [
+          { id: 'r10', name: 'Power_Cycle_Efficiency_Analysis.pdf', type: 'pdf', url: '#' },
+          { id: 'r11', name: 'Steam_Tables_Matlab_Interface.zip', type: 'zip', url: '#' }
+        ]
+      }
+    ]
+  }
+];
+
+
+================================================================================
+3. FILE: /src/index.css
+================================================================================
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #f8fafc;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  height: 14px;
+  width: 14px;
+  border-radius: 50%;
+  background: #00A896;
+  cursor: pointer;
+  -webkit-appearance: none;
+  margin-top: -4px;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  background: #e2e8f0;
+  border-radius: 3px;
+}
+
+
+================================================================================
+4. FILE: /src/main.tsx
+================================================================================
+import {StrictMode} from 'react';
+import {createRoot} from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+);
+
+
+================================================================================
+5. FILE: /src/App.tsx
+================================================================================
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
+import { INITIAL_MODULES } from './data';
+import { Module, Lesson } from './types';
+import Header from './components/Header';
+import Sidebar from './components/Sidebar';
+import VideoPlayer from './components/VideoPlayer';
+import CourseContent from './components/CourseContent';
+import LessonOverview from './components/LessonOverview';
+import ResourcesSection from './components/ResourcesSection';
+import CourseProgressCard from './components/CourseProgressCard';
+import UploadVideoModal from './components/UploadVideoModal';
+import { HomeView, CoursesView, ProfileView, GlobalResourcesView, ReportsView } from './components/OtherViews';
+
+export default function App() {
+  const [modules, setModules] = useState<Module[]>(INITIAL_MODULES);
+  
+  // Set default active lesson to Module 2 Lesson 3
+  const [activeLesson, setActiveLesson] = useState<Lesson>(INITIAL_MODULES[1].lessons[2]);
+  
+  const [activeTab, setActiveTab] = useState<string>('dashboard');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showUploadModal, setShowUploadModal] = useState<boolean>(false);
+  const userEmail = "richmond006mensah@gmail.com";
+
+  // Toggle complete state of a lesson by id
+  const handleToggleComplete = (lessonId: string) => {
+    setModules((prevModules) =>
+      prevModules.map((mod) => ({
+        ...mod,
+        lessons: mod.lessons.map((less) => {
+          if (less.id === lessonId) {
+            const updated = { ...less, completed: !less.completed };
+            if (activeLesson.id === lessonId) {
+              setActiveLesson(updated);
+            }
+            return updated;
+          }
+          return less;
+        })
+      }))
+    );
+  };
+
+  const handleToggleActiveComplete = () => {
+    handleToggleComplete(activeLesson.id);
+  };
+
+  // Update Overview edit
+  const handleUpdateOverview = (lessonId: string, newOverview: string) => {
+    setModules((prevModules) =>
+      prevModules.map((mod) => ({
+        ...mod,
+        lessons: mod.lessons.map((less) => {
+          if (less.id === lessonId) {
+            const updated = { ...less, overview: newOverview };
+            if (activeLesson.id === lessonId) {
+              setActiveLesson(updated);
+            }
+            return updated;
+          }
+          return less;
+        })
+      }))
+    );
+  };
+
+  // Adding uploaded movie lesson
+  const handleAddLesson = (moduleId: string, lessonData: { title: string; duration: string; overview: string }) => {
+    const newLesson: Lesson = {
+      id: `l_custom_${Date.now()}`,
+      title: lessonData.title,
+      duration: lessonData.duration,
+      completed: false,
+      overview: lessonData.overview,
+      thumbnail: '/src/assets/images/teacher_react_lesson_1780368326324.png',
+      resources: [
+        { id: `r_custom_s_${Date.now()}`, name: 'Lesson_Slides.pdf', type: 'pdf', url: '#' },
+        { id: `r_custom_z_${Date.now()}`, name: 'Completed_Workspace_Snippet.zip', type: 'zip', url: '#' }
+      ]
+    };
+
+    setModules((prevModules) =>
+      prevModules.map((mod) => {
+        if (mod.id === moduleId) {
+          return {
+            ...mod,
+            lessons: [...mod.lessons, newLesson]
+          };
+        }
+        return mod;
+      })
+    );
+  };
+
+  // Compute stats across modules dynamically
+  const allLessons = modules.flatMap((m) => m.lessons);
+  const totalLessonsCount = allLessons.length;
+  const completedLessonsCount = allLessons.filter((l) => l.completed).length;
+  const completionPercentage = totalLessonsCount > 0 ? Math.round((completedLessonsCount / totalLessonsCount) * 100) : 0;
+
+  // Compute active module index based on active selection (defaults to 0)
+  const activeModuleIndex = Math.max(0, modules.findIndex((m) => m.lessons.some((l) => l.id === activeLesson.id)));
+
+  // Navigation timeline trigger to shift modules
+  const handleModuleTimelineSelect = (modIndex: number) => {
+    const targetModule = modules[modIndex];
+    if (targetModule && targetModule.lessons.length > 0) {
+      setActiveLesson(targetModule.lessons[0]);
+    }
+  };
+
+  // Selection callbacks
+  const handleSelectLesson = (lesson: Lesson) => {
+    setActiveLesson(lesson);
+    setActiveTab('dashboard');
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans select-none" id="learnflow-app-root">
+      <Header
+        onUploadClick={() => setShowUploadModal(true)}
+        activeTab={activeTab === 'dashboard' ? 'dashboard' : activeTab}
+        setActiveTab={(tab) => {
+          if (tab === 'logout') {
+            if (confirm("Are you sure you want to log out from MensFlow?")) {
+              alert("Logged out successfully! Re-routing back to home.");
+              setActiveTab('home');
+            }
+          } else {
+            setActiveTab(tab);
+          }
+        }}
+        userEmail={userEmail}
+      />
+
+      <div className="flex flex-1" id="main-content-row">
+        <Sidebar
+          activeTab={activeTab}
+          setActiveTab={(tab) => {
+            if (tab === 'logout') {
+              if (confirm("Are you sure you want to log out from MensFlow?")) {
+                alert("Logged out successfully! Re-routing back to home.");
+                setActiveTab('home');
+              }
+            } else {
+              setActiveTab(tab);
+            }
+          }}
+        />
+
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto" id="dashboard-render-pane">
+          <AnimatePresence mode="wait">
+            {activeTab === 'home' && (
+              <motion.div
+                key="home"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              >
+                <HomeView
+                  onEnterClassroom={() => setActiveTab('dashboard')}
+                  completionPercentage={completionPercentage}
+                  completedCount={completedLessonsCount}
+                  totalCount={totalLessonsCount}
+                  userEmail={userEmail}
+                />
+              </motion.div>
+            )}
+
+            {activeTab === 'courses' && (
+              <motion.div
+                key="courses"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              >
+                <CoursesView
+                  onEnterClassroom={() => setActiveTab('dashboard')}
+                  completionPercentage={completionPercentage}
+                  completedCount={completedLessonsCount}
+                  totalCount={totalLessonsCount}
+                  userEmail={userEmail}
+                />
+              </motion.div>
+            )}
+
+            {activeTab === 'resources' && (
+              <motion.div
+                key="resources"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              >
+                <GlobalResourcesView />
+              </motion.div>
+            )}
+
+            {activeTab === 'profile' && (
+              <motion.div
+                key="profile"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              >
+                <ProfileView userEmail={userEmail} />
+              </motion.div>
+            )}
+
+            {activeTab === 'reports' && (
+              <motion.div
+                key="reports"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+              >
+                <ReportsView completionPercentage={completionPercentage} />
+              </motion.div>
+            )}
+
+            {activeTab === 'dashboard' && (
+              <motion.div
+                key="dashboard"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.25, ease: 'easeOut' }}
+                className="grid grid-cols-1 xl:grid-cols-3 gap-6 text-left"
+              >
+                <div className="xl:col-span-2 space-y-6" id="inner-classroom-col">
+                  <div className="text-left" id="breadcrumb-box">
+                    <h1 className="text-2xl font-extrabold text-slate-900 font-sans tracking-tight">Dashboard</h1>
+                    <p className="text-xs text-slate-500 font-medium font-sans">
+                      My Courses <span className="text-slate-400 mx-1">&gt;</span> Thermodynamics II <span className="text-slate-400 mx-1">&gt;</span> {activeLesson.title}
+                    </p>
+                  </div>
+
+                  <VideoPlayer lesson={activeLesson} onToggleComplete={handleToggleActiveComplete} />
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6" id="classroom-aux-grid">
+                    <LessonOverview lesson={activeLesson} onUpdateOverview={handleUpdateOverview} />
+                    <ResourcesSection resources={activeLesson.resources} />
+                  </div>
+                </div>
+
+                <div className="space-y-6 flex flex-col" id="classroom-sidebar-col">
+                  <div className="h-[200px]" id="classroom-progress-wrapper">
+                    <CourseProgressCard
+                      completionPercentage={completionPercentage}
+                      totalLessonsCount={totalLessonsCount}
+                      completedLessonsCount={completedLessonsCount}
+                      activeModuleIndex={activeModuleIndex}
+                      onModuleTimelineSelect={handleModuleTimelineSelect}
+                    />
+                  </div>
+                  <div className="flex-1" id="classroom-syllabus-wrapper">
+                    <CourseContent
+                      modules={modules}
+                      activeLesson={activeLesson}
+                      onSelectLesson={handleSelectLesson}
+                      onToggleComplete={handleToggleComplete}
+                      searchQuery={searchQuery}
+                      setSearchQuery={setSearchQuery}
+                    />
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </main>
+      </div>
+
+      <AnimatePresence>
+        {showUploadModal && (
+          <UploadVideoModal
+            onClose={() => setShowUploadModal(false)}
+            onAddLesson={handleAddLesson}
+            moduleOptions={modules.map((m) => ({ id: m.id, title: m.title }))}
+          />
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+
+================================================================================
+6. FILE: /src/components/Header.tsx
+================================================================================
+import { useState } from 'react';
+import { GraduationCap, LogOut, Plus, ChevronDown } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+
+interface HeaderProps {
+  onUploadClick: () => void;
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  userEmail: string;
+}
+
+export default function Header({ onUploadClick, activeTab, setActiveTab, userEmail }: HeaderProps) {
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const navLinks = [
+    { id: 'home', label: 'Home' },
+    { id: 'courses', label: 'My Courses' },
+    { id: 'resources', label: 'Resources' },
+    { id: 'dashboard', label: 'Dashboard' },
+    { id: 'profile', label: 'Profile' }
+  ];
+
+  return (
+    <motion.header 
+      initial={{ y: -60, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      className="bg-[#0D1E36] text-white py-3.5 px-6 flex items-center justify-between shadow-[0_10px_30px_rgba(13,30,54,0.15)] border-b border-white/5 select-none sticky top-0 z-40" 
+      id="header-main"
+    >
+      <motion.div 
+        whileHover={{ scale: 1.03 }}
+        whileTap={{ scale: 0.98 }}
+        className="flex items-center space-x-2.5 cursor-pointer group" 
+        onClick={() => setActiveTab('dashboard')} 
+        id="logo-container"
+      >
+        <div className="bg-[#E97426] p-1.5 rounded-lg shadow-md shadow-[#E97426]/20 group-hover:shadow-lg group-hover:shadow-[#E97426]/40 transition-all duration-300" id="logo-icon-bg">
+          <GraduationCap className="w-5.5 h-5.5 text-white" id="logo-icon" />
+        </div>
+        <span className="text-xl font-extrabold tracking-tight font-sans text-white hover:opacity-90" id="logo-text">
+          Mens<span className="text-[#E97426]">Flow</span>
+        </span>
+      </motion.div>
+
+      <nav className="hidden md:flex items-center space-x-1" id="nav-menu">
+        {navLinks.map((link) => {
+          const isActive = activeTab === link.id;
+          return (
+            <button
+              key={link.id}
+              onClick={() => setActiveTab(link.id)}
+              className={`relative px-4 py-2 font-semibold transition-colors cursor-pointer text-sm tracking-wide rounded-md ${
+                isActive ? 'text-[#E97426]' : 'text-slate-350 hover:text-white'
+              }`}
+              id={`nav-${link.id}`}
+            >
+              <span className="relative z-10">{link.label}</span>
+              {isActive && (
+                <motion.div
+                  layoutId="activeHeaderTab"
+                  className="absolute inset-0 bg-white/5 rounded-md border-b-2 border-[#E97426]"
+                  transition={{ type: 'spring', stiffness: 350, damping: 30 }}
+                />
+              )}
+            </button>
+          );
+        })}
+      </nav>
+
+      <div className="flex items-center space-x-4" id="header-actions">
+        <div className="relative" id="profile-dropdown-container">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="flex items-center space-x-2 text-slate-300 hover:text-white transition-colors cursor-pointer bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-xl border border-white/10 shadow-sm"
+            id="profile-dropdown-btn"
+          >
+            <img
+              src="/src/assets/images/alex_avatar_1780368345641.png"
+              alt="Alex Avatar"
+              className="w-7 h-7 rounded-full border border-slate-500 object-cover"
+              referrerPolicy="no-referrer"
+              id="user-avatar-img"
+            />
+            <div className="text-left hidden sm:block" id="user-details-text">
+              <p className="text-xs font-bold text-white leading-tight">Alex</p>
+              <p className="text-[9px] text-slate-400 leading-none">(user)</p>
+            </div>
+            <ChevronDown className="w-3 h-3 text-slate-400" id="chevron-down-avatar" />
+          </motion.button>
+
+          <AnimatePresence>
+            {dropdownOpen && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 10 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                className="absolute right-0 mt-2.5 w-56 bg-white text-slate-800 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] border border-slate-150 py-1.5 focus:outline-none z-50 overflow-hidden"
+              >
+                <div className="px-4 py-2 border-b border-slate-100 bg-slate-50/50">
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Signed in as</p>
+                  <p className="text-xs font-semibold truncate text-slate-705">{userEmail}</p>
+                </div>
+                <button
+                  onClick={() => {
+                    setActiveTab('profile');
+                    setDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-xs font-medium hover:bg-slate-50 transition-colors text-slate-700 flex items-center space-x-2"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                  <span>My Profile Setting</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveTab('courses');
+                    setDropdownOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2.5 text-xs font-medium hover:bg-slate-50 transition-colors text-slate-705 flex items-center space-x-2"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                  <span>My Enrolled Courses</span>
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <span className="text-slate-800 h-6 w-[1px] hidden sm:block" />
+
+        <motion.button
+          whileHover={{ scale: 1.05, x: -2 }}
+          onClick={() => setActiveTab('logout')}
+          className="text-slate-405 hover:text-white transition-colors flex items-center space-x-1.5 cursor-pointer text-xs font-medium hidden sm:flex"
+          id="btn-logout-header"
+        >
+          <LogOut className="w-3.5 h-3.5 text-slate-400" />
+          <span>Logout</span>
+        </motion.button>
+
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={onUploadClick}
+          className="bg-[#E97426] hover:bg-[#d6631b] text-white px-4 py-2 rounded-xl font-bold text-xs uppercase tracking-wider shadow-md shadow-[#E97426]/25 hover:shadow-lg hover:shadow-[#E97426]/40 transition-all duration-200 flex items-center space-x-1.5 active:scale-95 cursor-pointer"
+          id="btn-upload-video"
+        >
+          <Plus className="w-4 h-4 stroke-[3px]" />
+          <span>Upload Video</span>
+        </motion.button>
+      </div>
+    </motion.header>
+  );
+}
+
+
+================================================================================
+7. FILE: /src/components/Sidebar.tsx
+================================================================================
+import { Home, LayoutDashboard, Compass, FileText, User, BarChart3, LogOut } from 'lucide-react';
+import { motion } from 'motion/react';
+
+interface SidebarProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+}
+
+export default function Sidebar({ activeTab, setActiveTab }: SidebarProps) {
+  const menuItems = [
+    { id: 'home', label: 'Home', icon: Home },
+    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { id: 'courses', label: 'My Courses', icon: Compass },
+    { id: 'resources', label: 'Resources', icon: FileText },
+    { id: 'profile', label: 'Profile', icon: User },
+    { id: 'reports', label: 'Reports', icon: BarChart3 },
+    { id: 'logout', label: 'Logout', icon: LogOut }
+  ];
+
+  return (
+    <aside className="w-64 bg-white border-r border-slate-100 min-h-[calc(100vh-68px)] flex flex-col pt-6 select-none shrink-0" id="sidebar-left">
+      <div className="px-3 space-y-1.5" id="sidebar-menu-list">
+        {menuItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = activeTab === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className="w-full relative px-4 py-3 rounded-xl text-left font-semibold text-sm transition-colors cursor-pointer block select-none group"
+              id={`sidebar-${item.id}`}
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="activeSidebarTab"
+                  className="absolute inset-0 bg-[#0D1E36]/5 rounded-xl border-l-[4px] border-[#0D1E36]"
+                  transition={{ type: 'spring', stiffness: 350, damping: 28 }}
+                />
+              )}
+
+              <div className="relative z-10 flex items-center space-x-3.5">
+                <motion.div
+                  whileHover={{ rotate: isActive ? 0 : 5, scale: 1.1 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-[#0D1E36]' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                </motion.div>
+                <span className={`transition-colors ${isActive ? 'text-slate-900 font-bold' : 'text-slate-500 group-hover:text-slate-800'}`}>
+                  {item.label}
+                </span>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-auto p-4 border-t border-slate-105 text-center" id="sidebar-footer">
+        <p className="text-[10px] text-slate-400 font-mono tracking-wider font-semibold uppercase">Richmond Mensah</p>
+      </div>
+    </aside>
+  );
+}
+
+
+================================================================================
+8. FILE: /src/components/VideoPlayer.tsx
+================================================================================
+import { useState, useEffect, useRef, ChangeEvent } from 'react';
+import { Play, Pause, Volume2, RotateCcw, VolumeX, Maximize, Settings, Subtitles } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Lesson } from '../types';
+
+interface VideoPlayerProps {
+  lesson: Lesson;
+  onToggleComplete: () => void;
+}
+
+export default function VideoPlayer({ lesson, onToggleComplete }: VideoPlayerProps) {
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [volume, setVolume] = useState(80);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showCaptions, setShowCaptions] = useState(true);
+  const duration = 85;
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  const captions = [
+    { start: 0, end: 6, text: "Welcome to Chemical Engineering Lectures! Today we discuss thermodynamics." },
+    { start: 6, end: 14, text: "We'll study the volumetric properties of pure fluids and thermodynamic consistency." },
+    { start: 14, end: 25, text: "Using cubic equations of state, we reconcile vapor pressures and liquid volumes accurately." },
+    { start: 25, end: 38, text: "For non-ideal mixtures, activity coefficient formulations model real-world deviations." },
+    { start: 38, end: 52, text: "Make sure to review thermodynamic criteria for multi-phase equilibrium." },
+    { start: 52, end: 68, text: "Use Newton-Raphson solvers to calculate the volume roots analytically in the code." },
+    { start: 68, end: 85, text: "That covers the overview. Continue with standard exercises and companion resources." }
+  ];
+
+  const activeCaption = captions.find(c => currentTime >= c.start && currentTime <= c.end)?.text || "";
+
+  useEffect(() => {
+    if (isPlaying) {
+      intervalRef.current = setInterval(() => {
+        setCurrentTime((prev) => {
+          if (prev >= duration) {
+            setIsPlaying(false);
+            if (intervalRef.current) clearInterval(intervalRef.current);
+            return duration;
+          }
+          return prev + 1;
+        });
+      }, 1000);
+    } else {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    }
+
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [isPlaying]);
+
+  useEffect(() => {
+    setCurrentTime(0);
+    setIsPlaying(false);
+  }, [lesson.id]);
+
+  const formatTime = (secs: number) => {
+    const mins = Math.floor(secs / 60);
+    const remaining = secs % 60;
+    return `${mins}:${remaining < 10 ? '0' : ''}${remaining}`;
+  };
+
+  const handleScrub = (e: ChangeEvent<HTMLInputElement>) => {
+    setCurrentTime(Number(e.target.value));
+  };
+
+  const clickPlayOverlay = () => {
+    setIsPlaying(!isPlaying);
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: 'easeOut' }}
+      className="bg-[#101726] rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(16,23,38,0.25)] border border-slate-800 flex flex-col relative group" 
+      id="video-player-container"
+    >
+      <div className="bg-[#0b0f19] px-4 py-3 flex items-center justify-between border-b border-slate-900 select-none" id="player-mac-bar">
+        <div className="flex items-center space-x-2">
+          <span className="w-3" />
+          <span className="w-3 h-3 rounded-full bg-[#ff5f56] block cursor-pointer" />
+          <span className="w-3 h-3 rounded-full bg-[#ffbd2e] block cursor-pointer" />
+          <span className="w-3 h-3 rounded-full bg-[#27c93f] block cursor-pointer" />
+        </div>
+        <div className="text-xs text-slate-400 font-bold font-mono uppercase tracking-wider truncate max-w-xs md:max-w-md" id="mac-title-text">
+          workspace :: MensFlow :: {lesson.title}
+        </div>
+        <div className="w-12 h-2" />
+      </div>
+
+      <div className="relative aspect-video bg-black flex items-center justify-center overflow-hidden" id="video-screen-frame">
+        <motion.img
+          initial={{ scale: 1.05 }}
+          animate={{ scale: isPlaying ? 1 : 1.03 }}
+          transition={{ duration: 2 }}
+          src={lesson.thumbnail}
+          alt={lesson.title}
+          className="w-full h-full object-cover select-none absolute inset-0 opacity-85"
+          referrerPolicy="no-referrer"
+          id="video-background-image"
+        />
+
+        <div className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${isPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} />
+
+        <AnimatePresence>
+          {!isPlaying && (
+            <motion.button
+              initial={{ opacity: 0, scale: 0.4 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1,
+                boxShadow: ["0px 0px 0px 0px rgba(0, 168, 150, 0)", "0px 0px 0px 15px rgba(0, 168, 150, 0.2)", "0px 0px 0px 0px rgba(0, 168, 150, 0)"]
+              }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{ 
+                opacity: { duration: 0.2 },
+                scale: { type: 'spring', stiffness: 350, damping: 25 },
+                boxShadow: { repeat: Infinity, duration: 2, ease: "easeInOut" }
+              }}
+              whileHover={{ scale: 1.1, backgroundColor: "#00c2ad" }}
+              whileTap={{ scale: 0.9 }}
+              onClick={clickPlayOverlay}
+              className="absolute z-10 w-20 h-20 bg-[#00A896]/95 text-white rounded-full flex items-center justify-center shadow-2xl"
+              id="center-play-trigger"
+            >
+              <Play className="w-10 h-10 fill-white text-white translate-x-1" />
+            </motion.button>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showCaptions && isPlaying && activeCaption && (
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 15 }}
+              className="absolute bottom-16 inset-x-4 flex justify-center text-center select-none z-20" 
+              id="caption-overlay-layer"
+            >
+              <span className="bg-black/90 text-white px-5 py-2.5 rounded-xl text-xs md:text-sm font-semibold max-w-xl font-sans leading-relaxed shadow-2xl border border-white/10 backdrop-blur-md">
+                {activeCaption}
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      <div className="bg-gradient-to-t from-black/95 via-black/90 to-[#0b0f19] p-4 border-t border-slate-900 select-none text-white flex flex-col gap-3" id="player-controls-belt">
+        <div className="flex items-center space-x-3 w-full" id="scrubber-row">
+          <input
+            type="range"
+            min={0}
+            max={duration}
+            value={currentTime}
+            onChange={handleScrub}
+            className="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#00A896] hover:accent-[#00c2ad] transition-all"
+            id="video-scrub-input"
+          />
+        </div>
+
+        <div className="flex items-center justify-between" id="playback-hud-deck">
+          <div className="flex items-center space-x-4.5" id="hud-deck-left">
+            <motion.button
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setIsPlaying(!isPlaying)}
+              className="hover:text-[#00A896] transition-colors cursor-pointer"
+              id="hud-play-pause-btn"
+            >
+              {isPlaying ? <Pause className="w-5 h-5 fill-white" /> : <Play className="w-5 h-5 fill-white" />}
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.15, rotate: -45 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setCurrentTime(0)}
+              className="hover:text-[#00A896] transition-colors cursor-pointer"
+              title="Restart"
+            >
+              <RotateCcw className="w-4 h-4" />
+            </motion.button>
+
+            <div className="flex items-center space-x-2" id="volume-subset">
+              <button
+                onClick={() => setIsMuted(!isMuted)}
+                className="hover:text-[#00A896] transition-colors cursor-pointer"
+              >
+                {isMuted || volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+              </button>
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={isMuted ? 0 : volume}
+                onChange={(e) => {
+                  setVolume(Number(e.target.value));
+                  setIsMuted(false);
+                }}
+                className="w-16 h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#00A896]"
+                id="volume-slider"
+              />
+            </div>
+
+            <span className="text-xs text-slate-400 font-mono tracking-wider" id="hud-duration-readout">
+              {formatTime(currentTime)} <span className="text-slate-600">/</span> {formatTime(duration)}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-3.5" id="hud-deck-right">
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={onToggleComplete}
+              className={`text-[9px] uppercase font-bold px-3 py-1.5 rounded-lg transition-all duration-200 cursor-pointer ${
+                lesson.completed
+                  ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                  : 'bg-slate-800/40 text-slate-400 border border-slate-700/50 hover:bg-slate-850 hover:text-white'
+              }`}
+            >
+              {lesson.completed ? '● COMPLETED' : '○ MARK AS DONE'}
+            </motion.button>
+
+            <button
+              onClick={() => setShowCaptions(!showCaptions)}
+              className={`transition-colors cursor-pointer ${showCaptions ? 'text-[#00A896]' : 'text-slate-400 hover:text-slate-200'}`}
+              title="Toggle Captions"
+            >
+              <Subtitles className="w-4.5 h-4.5" />
+            </button>
+
+            <Settings className="w-4.5 h-4.5 text-slate-400 cursor-pointer hover:text-slate-200" />
+            <Maximize className="w-4.5 h-4.5 text-slate-400 cursor-pointer hover:text-slate-200" />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+
+================================================================================
+9. FILE: /src/components/CourseContent.tsx
+================================================================================
+import { useState } from 'react';
+import { ChevronDown, ChevronUp, CheckSquare, Square, Search, Settings } from 'lucide-react';
+import { Module, Lesson } from '../types';
+
+interface CourseContentProps {
+  modules: Module[];
+  activeLesson: Lesson;
+  onSelectLesson: (lesson: Lesson) => void;
+  onToggleComplete: (lessonId: string) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+}
+
+export default function CourseContent({
+  modules,
+  activeLesson,
+  onSelectLesson,
+  onToggleComplete,
+  searchQuery,
+  setSearchQuery
+}: CourseContentProps) {
+  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
+    m1: false,
+    m2: true,
+    m3: true,
+    m4: true
+  });
+
+  const toggleModule = (moduleId: string) => {
+    setExpandedModules(prev => ({
+      ...prev,
+      [moduleId]: !prev[moduleId]
+    }));
+  };
+
+  const filteredModules = modules.map(mod => {
+    const matchedLessons = mod.lessons.filter(less =>
+      less.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      mod.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    return {
+      ...mod,
+      lessons: matchedLessons,
+      hasMatches: matchedLessons.length > 0 || mod.title.toLowerCase().includes(searchQuery.toLowerCase())
+    };
+  }).filter(mod => mod.hasMatches);
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-100 flex flex-col overflow-hidden h-full" id="course-content-container">
+      <div className="p-4 border-b border-slate-50 flex items-center space-x-2 shrink-0" id="course-content-search-sec">
+        <div className="relative flex-1" id="search-input-wrap">
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search lectures..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-[#0D1E36] focus:border-[#0D1E36] text-slate-800 transition-all font-sans"
+            id="content-search-input"
+          />
+        </div>
+        <button className="p-2 sm:p-2.5 bg-[#0D1E36] hover:bg-[#1a3a63] text-white rounded-lg transition-colors cursor-pointer">
+          <Settings className="w-4 h-4" />
+        </button>
+      </div>
+
+      <div className="p-4 flex-1 overflow-y-auto space-y-3 max-h-[580px]" id="content-scroller">
+        <h3 className="text-base font-bold text-slate-900 mb-2 px-1 font-sans">Course Syllabus</h3>
+        
+        {filteredModules.length === 0 ? (
+          <div className="text-center py-8 px-4">
+            <p className="text-sm text-slate-400">No matching lessons found</p>
+          </div>
+        ) : (
+          filteredModules.map((mod) => {
+            const isExpanded = expandedModules[mod.id];
+            return (
+              <div key={mod.id} className="border border-slate-100 rounded-lg overflow-hidden bg-slate-50/50" id={`module-block-${mod.id}`}>
+                <button
+                  onClick={() => toggleModule(mod.id)}
+                  className="w-full px-4 py-3 bg-white hover:bg-slate-50 transition-colors flex items-center justify-between text-left select-none cursor-pointer"
+                >
+                  <span className="text-sm font-bold text-slate-805 text-slate-800 font-sans tracking-tight">
+                    {mod.title}
+                  </span>
+                  {isExpanded ? <ChevronUp className="w-4.5 h-4.5 text-slate-500" /> : <ChevronDown className="w-4.5 h-4.5 text-slate-500" />}
+                </button>
+
+                {isExpanded && (
+                  <div className="p-1 px-2 pb-2 space-y-1 border-t border-slate-100 bg-white">
+                    {mod.lessons.map((less) => {
+                      const isActive = activeLesson.id === less.id;
+                      return (
+                        <div
+                          key={less.id}
+                          className={`flex items-center justify-between p-2.5 rounded-lg transition-all text-xs border ${
+                            isActive
+                              ? 'bg-slate-50 border-slate-100 shadow-sm text-slate-900 font-semibold'
+                              : 'border-transparent hover:bg-slate-50 text-slate-600 hover:text-slate-800'
+                          }`}
+                        >
+                          <div className="flex items-center space-x-2.5 flex-1 min-w-0">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onToggleComplete(less.id);
+                              }}
+                              className="text-[#00A896] hover:scale-105 transition-transform cursor-pointer shrink-0"
+                            >
+                              {less.completed ? (
+                                <CheckSquare className="w-4.5 h-4.5 fill-emerald-500/10 text-emerald-500" />
+                              ) : (
+                                <Square className="w-4.5 h-4.5 text-slate-300" />
+                              )}
+                            </button>
+
+                            <button
+                              onClick={() => onSelectLesson(less)}
+                              className="text-left font-medium text-[13px] truncate flex-1 hover:text-[#00A896] transition-colors cursor-pointer leading-tight"
+                            >
+                              {less.title}
+                            </button>
+                          </div>
+
+                          <span className="text-[11px] text-slate-400 font-mono shrink-0 ml-2">
+                            {less.duration}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+================================================================================
+10. FILE: /src/components/LessonOverview.tsx
+================================================================================
+import { useState, useEffect } from 'react';
+import { Edit2, Check, X } from 'lucide-react';
+import { Lesson } from '../types';
+
+interface LessonOverviewProps {
+  lesson: Lesson;
+  onUpdateOverview: (lessonId: string, text: string) => void;
+}
+
+export default function LessonOverview({ lesson, onUpdateOverview }: LessonOverviewProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editableText, setEditableText] = useState(lesson.overview);
+
+  useEffect(() => {
+    setEditableText(lesson.overview);
+    setIsEditing(false);
+  }, [lesson.id, lesson.overview]);
+
+  const handleSave = () => {
+    onUpdateOverview(lesson.id, editableText);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setEditableText(lesson.overview);
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-100 flex flex-col h-full group" id="lesson-overview-card">
+      <div className="flex items-center justify-between mb-3 border-b border-slate-50 pb-2.5" id="overview-card-header">
+        <h3 className="text-base font-bold text-slate-900 font-sans tracking-tight">
+          Lesson Overview
+        </h3>
+        
+        {isEditing ? (
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleSave}
+              className="text-emerald-600 hover:text-emerald-700 p-1 rounded hover:bg-emerald-50 transition-colors cursor-pointer"
+            >
+              <Check className="w-4 h-4" />
+            </button>
+            <button
+              onClick={handleCancel}
+              className="text-rose-600 hover:text-rose-700 p-1 rounded hover:bg-rose-50 transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="text-slate-404 hover:text-slate-705 opacity-0 group-hover:opacity-100 transition-all p-1.5 rounded hover:bg-slate-50 cursor-pointer"
+            title="Edit Description"
+          >
+            <Edit2 className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+
+      {isEditing ? (
+        <textarea
+          value={editableText}
+          onChange={(e) => setEditableText(e.target.value)}
+          rows={6}
+          className="w-full text-slate-600 text-[13px] leading-relaxed font-sans border border-slate-200 rounded-lg p-2.5 focus:outline-none focus:ring-1 focus:ring-[#0D1E36] focus:border-[#0D1E36] bg-slate-50/50"
+        />
+      ) : (
+        <p className="text-slate-600 text-[13.5px] leading-relaxed font-sans whitespace-pre-wrap select-text">
+          {lesson.overview}
+        </p>
+      )}
+    </div>
+  );
+}
+
+
+================================================================================
+11. FILE: /src/components/ResourcesSection.tsx
+================================================================================
+import { useState } from 'react';
+import { FileText, Download, Check, Loader2, FileCode } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { Resource } from '../types';
+
+interface ResourcesSectionProps {
+  resources: Resource[];
+}
+
+export default function ResourcesSection({ resources }: ResourcesSectionProps) {
+  const [downloadingIds, setDownloadingIds] = useState<Record<string, boolean>>({});
+  const [completedIds, setCompletedIds] = useState<Record<string, boolean>>({});
+
+  const triggerDownload = (res: Resource) => {
+    if (downloadingIds[res.id]) return;
+
+    setDownloadingIds(prev => ({ ...prev, [res.id]: true }));
+
+    setTimeout(() => {
+      setDownloadingIds(prev => ({ ...prev, [res.id]: false }));
+      setCompletedIds(prev => ({ ...prev, [res.id]: true }));
+
+      // Create simulated file download
+      const element = document.createElement("a");
+      const file = new Blob([`MensFlow Companion Resource Code: ${res.name}. Provided for classroom evaluation.`], { type: 'text/plain' });
+      element.href = URL.createObjectURL(file);
+      element.download = res.name;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+
+      setTimeout(() => {
+        setCompletedIds(prev => ({ ...prev, [res.id]: false }));
+      }, 3000);
+    }, 1500);
+  };
+
+  return (
+    <div className="bg-white rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-slate-100 flex flex-col h-full transition-shadow duration-300" id="resources-panel-card">
+      <div className="mb-4 text-left">
+        <h3 className="text-sm font-extrabold text-slate-905 text-slate-900 font-sans uppercase tracking-wider leading-tight">
+          Companion Material
+        </h3>
+        <p className="text-xs text-slate-400 font-medium font-sans">Resources and files</p>
+      </div>
+
+      <div className="space-y-3 flex-1 flex flex-col justify-center">
+        {resources.length === 0 ? (
+          <p className="text-xs text-slate-400 text-center py-4 font-sans">No companion files for this lesson</p>
+        ) : (
+          resources.map((res) => {
+            const isPdf = res.name.toLowerCase().endsWith('.pdf');
+            const isZip = res.name.toLowerCase().endsWith('.zip');
+            const isDownloading = downloadingIds[res.id];
+            const isCompleted = completedIds[res.id];
+
+            return (
+              <motion.div
+                key={res.id}
+                onClick={() => triggerDownload(res)}
+                whileHover={{ y: -3, scale: 1.01, boxShadow: '0 4px 12px rgba(0,0,0,0.03)' }}
+                whileTap={{ scale: 0.99 }}
+                className="flex items-center justify-between p-3.5 rounded-xl border border-slate-100 bg-slate-50/40 hover:bg-slate-50 hover:border-slate-200 transition-colors cursor-pointer group"
+              >
+                <div className="flex items-center space-x-3 min-w-0">
+                  <div
+                    className={`p-2 rounded-lg shrink-0 transition-transform duration-300 group-hover:rotate-6 ${
+                      isPdf ? 'bg-rose-50 text-rose-500 shadow-sm' : isZip ? 'bg-amber-50 text-amber-500 shadow-sm' : 'bg-blue-50 text-blue-505 shadow-sm'
+                    }`}
+                  >
+                    {isPdf ? <FileText className="w-5 h-5" /> : <FileCode className="w-5 h-5" />}
+                  </div>
+
+                  <div className="truncate text-left font-sans">
+                    <p className="text-[13px] font-bold text-slate-800 truncate leading-tight font-sans">
+                      {res.name}
+                    </p>
+                    <p className="text-[10px] text-slate-400 leading-none mt-1">
+                      {isPdf ? 'PDF document' : isZip ? 'ZIP archive' : 'Attachment URL'}
+                    </p>
+                  </div>
+                </div>
+
+                <button className="p-1.5 rounded-md text-slate-400 group-hover:text-slate-705 pointer-events-none">
+                  <AnimatePresence mode="wait">
+                    {isDownloading ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-slate-500" />
+                    ) : isCompleted ? (
+                      <Check className="w-4 h-4 text-emerald-500 animate-scale-up" />
+                    ) : (
+                      <Download className="w-4 h-4" />
+                    )}
+                  </AnimatePresence>
+                </button>
+              </motion.div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+================================================================================
+12. FILE: /src/components/CourseProgressCard.tsx
+================================================================================
+import { motion } from 'motion/react';
+
+interface CourseProgressCardProps {
+  completionPercentage: number;
+  totalLessonsCount: number;
+  completedLessonsCount: number;
+  activeModuleIndex: number;
+  onModuleTimelineSelect: (modIndex: number) => void;
+}
+
+export default function CourseProgressCard({
+  completionPercentage,
+  totalLessonsCount,
+  completedLessonsCount,
+  activeModuleIndex,
+  onModuleTimelineSelect
+}: CourseProgressCardProps) {
+  const timelineStages = [
+    { label: 'Low', value: 0 },
+    { label: 'Basic', value: 1 },
+    { label: 'Core', value: 2 },
+    { label: 'High', value: 3 }
+  ];
+
+  return (
+    <div className="bg-white rounded-2xl p-5 shadow-[0_4px_20px_rgba(0,0,0,0.02)] border border-slate-100 flex flex-col justify-between h-full space-y-5 transition-shadow duration-300" id="progress-card-container">
+      <div>
+        <h3 className="text-sm font-extrabold text-slate-900 font-sans uppercase tracking-wider mb-3">
+          Course Progress
+        </h3>
+        
+        <div className="flex items-center justify-between text-xs font-semibold mb-1.5">
+          <span className="text-slate-505 text-slate-500">
+            {completionPercentage}% complete
+          </span>
+          <span className="text-[#00A896] bg-[#00A896]/10 px-2 py-0.5 rounded-md font-mono text-[11px]">
+            {completedLessonsCount}/{totalLessonsCount} Lessons
+          </span>
+        </div>
+
+        <div className="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${completionPercentage}%` }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="bg-gradient-to-r from-[#00A896] to-[#00c2ad] h-full rounded-full shadow-sm"
+          />
+        </div>
+      </div>
+
+      <div className="pt-2 border-t border-slate-50 relative" id="timeline-indicator-block">
+        <span className="text-[10px] font-bold text-slate-400 font-sans mb-3 block uppercase tracking-wider">
+          Timeline Stage
+        </span>
+
+        <div className="relative h-6">
+          <motion.div
+            animate={{ left: `${(activeModuleIndex / 3) * 100}%` }}
+            transition={{ type: 'spring', stiffness: 220, damping: 20 }}
+            className="absolute -translate-x-1/2 flex flex-col items-center"
+          >
+            <span className="text-[#00A896] text-[11px] leading-none mb-0.5 animate-bounce">▼</span>
+          </motion.div>
+        </div>
+
+        <div className="relative flex items-center justify-between px-1">
+          <div className="absolute left-1 right-1 h-1 bg-slate-200 top-1/2 -translate-y-1/2 -z-10" />
+          
+          <motion.div
+            animate={{ width: `calc(${(activeModuleIndex / 3) * 100}% - 4px)` }}
+            transition={{ type: 'spring', stiffness: 220, damping: 20 }}
+            className="absolute left-1 h-1 bg-[#00A896] top-1/2 -translate-y-1/2 -z-10"
+          />
+
+          {timelineStages.map((stage, idx) => {
+            const isCompletedOrActive = idx <= activeModuleIndex;
+            const isCurrent = idx === activeModuleIndex;
+
+            return (
+              <button
+                key={stage.label}
+                onClick={() => onModuleTimelineSelect(idx)}
+                className="flex flex-col items-center cursor-pointer group relative"
+              >
+                <motion.span
+                  whileHover={{ scale: 1.3 }}
+                  whileTap={{ scale: 0.9 }}
+                  className={`w-4 h-4 rounded-full border-2 transition-all duration-300 transform ${
+                    isCurrent
+                      ? 'bg-white border-[#00A896] scale-110 shadow-lg shadow-[#00A896]/50'
+                      : isCompletedOrActive
+                      ? 'bg-[#00A896] border-[#00A896]'
+                      : 'bg-white border-slate-300'
+                  }`}
+                />
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex justify-between items-center mt-2.5 px-0.5 text-[10px] font-bold text-slate-400 font-mono uppercase tracking-widest">
+          <span>Low</span>
+          <span>High</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+
+================================================================================
+13. FILE: /src/components/UploadVideoModal.tsx
+================================================================================
+import { useState, FormEvent } from 'react';
+import { X, Film, Clock } from 'lucide-react';
+
+interface UploadVideoModalProps {
+  onClose: () => void;
+  onAddLesson: (moduleId: string, lessonData: {
+    title: string;
+    duration: string;
+    overview: string;
+  }) => void;
+  moduleOptions: { id: string; title: string }[];
+}
+
+export default function UploadVideoModal({ onClose, onAddLesson, moduleOptions }: UploadVideoModalProps) {
+  const [title, setTitle] = useState('');
+  const [selectedModuleId, setSelectedModuleId] = useState(moduleOptions[0]?.id || 'm2');
+  const [minutes, setMinutes] = useState('05');
+  const [seconds, setSeconds] = useState('00');
+  const [overview, setOverview] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    const newErrors: Record<string, string> = {};
+
+    if (!title.trim()) {
+      newErrors.title = 'Please enter a lecture title';
+    }
+    if (!overview.trim()) {
+      newErrors.overview = 'Please enter a quick lecture overview';
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      return;
+    }
+
+    const duration = `${minutes.padStart(2, '0')}:${seconds.padStart(2, '0')}`;
+
+    onAddLesson(selectedModuleId, {
+      title: title.trim(),
+      duration,
+      overview: overview.trim()
+    });
+
+    setSuccess(true);
+    setTimeout(() => {
+      onClose();
+    }, 1550);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-xs select-none animate-fade-in" id="upload-dialog-box">
+      <div className="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-100 transform scale-100 transition-all">
+        <div className="bg-[#0D1E36] text-white px-6 py-4 flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Film className="w-5 h-5 text-[#E97426]" />
+            <span className="text-base font-bold font-sans tracking-tight">Upload Lecture Material</span>
+          </div>
+          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors cursor-pointer">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {success ? (
+          <div className="p-8 text-center flex flex-col items-center justify-center space-y-4">
+            <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center animate-bounce animate-duration-1000">
+              <Film className="w-7 h-7" />
+            </div>
+            <h4 className="text-lg font-bold text-slate-800 font-sans">Lecture Added Successfully!</h4>
+            <p className="text-xs text-slate-400 font-sans">The custom science lecture has been registered in your syllabus catalog.</p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="p-6 space-y-4 text-left">
+            <div className="flex flex-col space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider font-sans">
+                Lecture Title
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Activity Coefficients & Margules Equations Parameter Validation"
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setErrors(prev => ({ ...prev, title: '' }));
+                }}
+                className={`w-full border rounded-lg px-3 py-2 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 ${
+                  errors.title ? 'border-rose-300 focus:ring-rose-500' : 'border-slate-200 focus:ring-[#0D1E36]'
+                }`}
+              />
+              {errors.title && <p className="text-[10px] text-rose-500 font-semibold">{errors.title}</p>}
+            </div>
+
+            <div className="flex flex-col space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider font-sans">
+                Target Chapter / Module
+              </label>
+              <select
+                value={selectedModuleId}
+                onChange={(e) => setSelectedModuleId(e.target.value)}
+                className="w-full border border-slate-200 bg-white rounded-lg px-3 py-2 text-sm text-slate-800 focus:outline-none focus:ring-1 focus:ring-[#0D1E36]"
+              >
+                {moduleOptions.map((opt) => (
+                  <option key={opt.id} value={opt.id}>
+                    {opt.title}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex space-x-4">
+              <div className="flex-1 flex flex-col space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider font-sans flex items-center space-x-1">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Duration (Minutes)</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={minutes}
+                  onChange={(e) => setMinutes(e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm text-slate-800 focus:outline-none focus:ring-1"
+                />
+              </div>
+
+              <div className="flex-1 flex flex-col space-y-1">
+                <label className="text-xs font-bold text-slate-500 uppercase tracking-wider font-sans flex items-center space-x-1">
+                  <Clock className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Duration (Seconds)</span>
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  max="59"
+                  value={seconds}
+                  onChange={(e) => setSeconds(e.target.value)}
+                  className="w-full border border-slate-200 rounded-lg px-2.5 py-1.5 text-sm text-slate-800 focus:outline-none focus:ring-1"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col space-y-1">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider font-sans">
+                Syllabus Brief Overview
+              </label>
+              <textarea
+                rows={3}
+                placeholder="Briefly state structural key concepts, criteria, or exercises covered..."
+                value={overview}
+                onChange={(e) => {
+                  setOverview(e.target.value);
+                  setErrors(prev => ({ ...prev, overview: '' }));
+                }}
+                className={`w-full border rounded-lg px-3 py-2 text-sm text-slate-200 focus:outline-none focus:ring-1 ${
+                  errors.overview ? 'border-rose-300 focus:ring-rose-500' : 'border-slate-200 focus:ring-[#0D1E36]'
+                }`}
+              />
+              {errors.overview && <p className="text-[10px] text-rose-500 font-semibold">{errors.overview}</p>}
+            </div>
+
+            <div className="pt-2 flex items-center justify-end space-x-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-600 rounded-lg text-sm font-medium transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-[#E97426] hover:bg-[#d6631b] text-white rounded-lg text-sm font-medium transition-colors shadow-sm cursor-pointer"
+              >
+                Register Lecture
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
+
+================================================================================
+14. FILE: /src/components/OtherViews.tsx
+================================================================================
+import { useState } from 'react';
+import { Compass, BookOpen, Star, Mail, Award, Flame, FileText, CheckCircle, BarChart3, Clock } from 'lucide-react';
+import { motion } from 'motion/react';
+
+interface OtherViewsProps {
+  onEnterClassroom: () => void;
+  completionPercentage: number;
+  completedCount: number;
+  totalCount: number;
+  userEmail: string;
+}
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08
+    }
+  }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 300, damping: 25 } }
+};
+
+export function HomeView({ onEnterClassroom, completionPercentage, completedCount, totalCount }: OtherViewsProps) {
+  return (
+    <motion.div 
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className="space-y-6 text-left"
+    >
+      <motion.div 
+        variants={itemVariants}
+        className="bg-gradient-to-r from-[#0D1E36] via-[#152e52] to-[#0D1E36] text-white p-8 rounded-2xl relative overflow-hidden shadow-lg border border-white/5"
+      >
+        <div className="absolute right-0 bottom-0 opacity-10 pointer-events-none translate-x-10 translate-y-10">
+          <BookOpen className="w-64 h-64 text-white" />
+        </div>
+        <div className="relative z-10 space-y-3.5 max-w-xl">
+          <span className="inline-block bg-[#E97426] text-white text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-md shadow-sm">
+            Classroom Portal
+          </span>
+          <h2 className="text-3xl font-extrabold font-sans tracking-tight">Welcome back, Alex!</h2>
+          <p className="text-sm text-slate-300 leading-relaxed font-medium">
+            Continue where you left off. You are making rapid progress through your Chemical Engineering modules. Keep the streak active!
+          </p>
+        </div>
+      </motion.div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <motion.div 
+          variants={itemVariants}
+          whileHover={{ y: -3 }}
+          className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 lg:col-span-2 flex flex-col justify-between transition-all duration-300"
+        >
+          <div className="space-y-3.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold text-[#E97426] tracking-wider font-mono">ENROLLED</span>
+              <div className="flex items-center space-x-1.5 text-amber-500 text-xs font-bold">
+                <Star className="w-4 h-4 fill-current text-yellow-500" />
+                <span>4.9 ratings</span>
+              </div>
+            </div>
+            <h3 className="text-xl font-bold text-slate-950 font-sans leading-tight tracking-tight">Thermodynamics II</h3>
+            <p className="text-xs text-slate-500 leading-relaxed font-medium">
+              Master phase equilibrium formulations, cubic equations of state (PR & SRK), activity coefficient models, and chemical reaction equilibrium.
+            </p>
+
+            <div className="space-y-2 pt-2">
+              <div className="flex justify-between items-center text-xs font-bold">
+                <span className="text-slate-505">Course Progress</span>
+                <span className="text-[#00A896] bg-[#00A896]/10 px-2 py-0.5 rounded-md">{completionPercentage}% Completed</span>
+              </div>
+              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${completionPercentage}%` }}
+                  transition={{ duration: 0.8 }}
+                  className="bg-[#00A896] h-full rounded-full" 
+                />
+              </div>
+            </div>
+          </div>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={onEnterClassroom}
+            className="mt-6 w-full py-3 bg-[#0D1E36] hover:bg-[#153158] text-white rounded-xl text-sm font-bold tracking-wide transition-all flex items-center justify-center space-x-2 cursor-pointer"
+          >
+            <Compass className="w-4 h-4" />
+            <span>Resume Lectures</span>
+          </motion.button>
+        </motion.div>
+
+        <motion.div 
+          variants={itemVariants}
+          className="bg-slate-50 rounded-2xl p-6 flex flex-col justify-between border border-slate-100"
+        >
+          <div className="space-y-4.5 text-left">
+            <h4 className="text-xs font-bold text-slate-800 font-sans tracking-wide uppercase">Your Accomplishments</h4>
+            
+            <div className="space-y-3.5">
+              <div className="flex items-start space-x-3.5 p-3.5 bg-white rounded-xl border border-slate-100 shadow-sm">
+                <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
+                  <Flame className="w-5 h-5 fill-current" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-850 leading-tight">4-Day Active Streak</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Keep learning every day to lock streak benefits</p>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3.5 p-3.5 bg-white rounded-xl border border-slate-100 shadow-sm">
+                <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
+                  <Award className="w-5 h-5" />
+                </div>
+                <div>
+                  <p className="text-xs font-bold text-slate-850 leading-tight">{completedCount} Lectures Cleared</p>
+                  <p className="text-[10px] text-slate-400 mt-1">Out of {totalCount} registered syllabus points</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    </motion.div>
+  );
+}
+
+export function CoursesView({ onEnterClassroom, completionPercentage }: OtherViewsProps) {
+  const catalog = [
+    {
+      id: 'thermo-ii',
+      title: 'Thermodynamics II',
+      desc: 'Master phase equilibrium formulations, cubic equations of state (PR & SRK), activity coefficient models, and chemical reaction equilibrium.',
+      instructor: 'Teacher Alex',
+      enrolled: true,
+      progress: completionPercentage,
+      rating: '4.9',
+      duration: '14h playback'
+    },
+    {
+      id: 'cre',
+      title: 'Chemical Reaction Engineering (CRE)',
+      desc: 'Formulate reactor design equations for batch, CSTR, and PFR configurations, analyze homogeneous reaction kinetics, and determine steady thermal states.',
+      instructor: 'Teacher Alex',
+      enrolled: true,
+      progress: 12,
+      rating: '4.8',
+      duration: '16h playback'
+    },
+    {
+      id: 'heat-transfer',
+      title: 'Heat Transfer Processes',
+      desc: 'Analyze systems with steady state heat conduction, force & free convection, phase-change boiling heat transfer coefficients, and blackbody radiation.',
+      instructor: 'Marcus Aurelius',
+      enrolled: false,
+      progress: 0,
+      rating: '5.0',
+      duration: '12h playback'
+    }
+  ];
+
+  return (
+    <motion.div 
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className="space-y-6 text-left"
+    >
+      <motion.div variants={itemVariants}>
+        <h2 className="text-2xl font-extrabold text-slate-900 font-sans tracking-tight">Your Course Curriculum</h2>
+        <p className="text-xs text-slate-400 mt-0.5 font-sans">Explore active certifications and register for upcoming technical modules.</p>
+      </motion.div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {catalog.map((course) => (
+          <motion.div 
+            variants={itemVariants}
+            whileHover={{ y: -5 }}
+            key={course.id} 
+            className="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm flex flex-col justify-between min-h-[300px] transition-all duration-300"
+          >
+            <div className="space-y-3.5">
+              <div className="flex items-center justify-between">
+                <span className={`text-[9px] uppercase font-extrabold tracking-wider px-2.5 py-1 rounded-md ${
+                  course.enrolled ? 'bg-emerald-50 text-emerald-600 border border-emerald-500/10' : 'bg-slate-100 text-slate-500'
+                }`}>
+                  {course.enrolled ? 'Active' : 'Not Registered'}
+                </span>
+                <span className="text-slate-400 text-xs font-mono font-medium">{course.duration}</span>
+              </div>
+
+              <h3 className="text-base font-bold text-slate-950 font-sans tracking-tight leading-tight">
+                {course.title}
+              </h3>
+              <p className="text-xs text-slate-505 leading-relaxed">
+                {course.desc}
+              </p>
+            </div>
+
+            <div className="space-y-4 pt-4 mt-4 border-t border-slate-100">
+              {course.enrolled ? (
+                <div className="space-y-1.55 space-y-1.5">
+                  <div className="flex justify-between items-center text-[10px] font-bold">
+                    <span className="text-slate-404">Progress</span>
+                    <span className="text-[#00A896] font-semibold">{course.progress}%</span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${course.progress}%` }}
+                      transition={{ duration: 0.6 }}
+                      className="bg-[#00A896] h-full rounded-full" 
+                    />
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-400 italic">Lectured by {course.instructor}</p>
+              )}
+
+              {course.enrolled ? (
+                <button
+                  onClick={onEnterClassroom}
+                  className="w-full py-2.5 bg-[#0D1E36] hover:bg-[#122b4d] text-white rounded-xl text-xs font-bold transition-all cursor-pointer text-center"
+                >
+                  Enter Classroom
+                </button>
+              ) : (
+                <button
+                  className="w-full py-2.5 bg-slate-100 text-slate-705 hover:bg-slate-200 rounded-xl text-xs font-bold transition-all cursor-pointer text-center"
+                >
+                  Purchase and Request Access
+                </button>
+              )}
+            </div>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+export function ProfileView({ userEmail }: { userEmail: string }) {
+  const [name, setName] = useState('Alex');
+  const [major, setMajor] = useState('Chemical Engineering Faculty');
+  const [success, setSuccess] = useState(false);
+
+  const saveProfile = () => {
+    setSuccess(true);
+    setTimeout(() => setSuccess(false), 2000);
+  };
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.96, y: 15 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      className="max-w-xl mx-auto bg-white rounded-3xl border border-slate-150 overflow-hidden text-left shadow-sm"
+    >
+      <div className="bg-[#0D1E36] p-7 text-white text-center">
+        <div className="flex flex-col items-center">
+          <img
+            src="/src/assets/images/alex_avatar_1780368345641.png"
+            alt="Alex Avatar"
+            className="w-24 h-24 rounded-full border-4 border-white/25 object-cover"
+            referrerPolicy="no-referrer"
+          />
+        </div>
+      </div>
+
+      <div className="p-7 pt-12 space-y-6">
+        <div className="text-center">
+          <h2 className="text-xl font-extrabold text-slate-900">{name}</h2>
+          <p className="text-xs font-medium text-[#E97426] uppercase tracking-wider mt-1">{major}</p>
+        </div>
+
+        <div className="space-y-4">
+          <div className="flex flex-col space-y-1">
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider font-sans mb-1">Full Student Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 bg-slate-50/50 focus:outline-[#0d1e36]"
+            />
+          </div>
+
+          <div className="flex flex-col space-y-1">
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider font-sans mb-1">Contact Email Address</label>
+            <div className="relative">
+              <input
+                type="email"
+                disabled
+                value={userEmail}
+                className="w-full border border-slate-100 bg-slate-50 text-slate-400 rounded-xl pl-10 pr-3 py-2.5 text-sm cursor-not-allowed"
+              />
+              <Mail className="absolute left-3.5 top-3.5 w-4 h-4 text-slate-300" />
+            </div>
+            <span className="text-[10px] text-slate-400 italic mt-1 font-sans">User accounts are managed securely via core integration systems.</span>
+          </div>
+
+          <div className="flex flex-col space-y-1">
+            <label className="text-xs font-bold text-slate-400 uppercase tracking-wider font-sans mb-1">Current Program Major</label>
+            <input
+              type="text"
+              value={major}
+              onChange={(e) => setMajor(e.target.value)}
+              className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 bg-slate-50/50 focus:outline-[#0d1e36]"
+            />
+          </div>
+        </div>
+
+        <button
+          onClick={saveProfile}
+          className="w-full py-3 bg-[#0D1E36] hover:bg-[#1b3a63] text-white rounded-xl font-bold text-xs uppercase cursor-pointer transition-colors"
+        >
+          {success ? 'Profile Saved Successfully!' : 'Save Profile Changes'}
+        </button>
+      </div>
+    </motion.div>
+  );
+}
+
+export function GlobalResourcesView() {
+  const globalMaterials = [
+    { title: 'Equations of State Crib Sheet', type: 'pdf', author: 'Alex' },
+    { title: 'Vapor-Liquid Equilibrium Diagram Tool', type: 'code', author: 'Richmond' },
+    { title: 'Chemical Reaction Equilbrium Constant Database', type: 'zip', author: 'Dr. Sarah Powell' },
+    { title: 'Heat Transfer Convection Coefficients Sheet', type: 'pdf', author: 'Marcus' }
+  ];
+
+  return (
+    <motion.div
+      variants={containerVariants}
+      initial="hidden"
+      animate="show"
+      className="space-y-6 text-left"
+    >
+      <motion.div variants={itemVariants}>
+        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Global Course Library</h2>
+        <p className="text-xs text-slate-405 mt-0.5">Reference and auxiliary files associated with chemical engineering workflows.</p>
+      </motion.div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {globalMaterials.map((file, i) => (
+          <motion.div
+            variants={itemVariants}
+            key={i}
+            className="p-4 bg-white border border-slate-100 rounded-2xl flex items-center justify-between shadow-xs hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center space-x-3.5">
+              <div className="p-2 bg-slate-100 rounded-lg">
+                <FileText className="w-5 h-5 text-[#0d1e36]" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-slate-855 text-slate-800">{file.title}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5 font-sans">Syllabus attachment • Uploaded by {file.author}</p>
+              </div>
+            </div>
+            <button className="text-[#00A896] hover:text-[#00c2ad] font-bold text-xs flex items-center space-x-1 cursor-pointer">
+              <Clock className="w-3.5 h-3.5" />
+              <span>Sim Download</span>
+            </button>
+          </motion.div>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+export function ReportsView({ completionPercentage }: { completionPercentage: number }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6 text-left"
+    >
+      <div>
+        <h2 className="text-2xl font-extrabold text-slate-900 tracking-tight">Active Learning Analytics</h2>
+        <p className="text-xs text-slate-450 mt-0.5 font-sans">Interactive graphs and statistics detailing homework completion speeds.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="bg-white border border-slate-100 p-6 rounded-2xl flex flex-col justify-between shadow-xs">
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono">Completion Score</p>
+            <h3 className="text-3xl font-extrabold text-slate-900 mt-2">{completionPercentage}%</h3>
+          </div>
+          <p className="text-[11px] text-emerald-500 mt-4 font-semibold font-sans">Active syllabus tracks cleared</p>
+        </div>
+
+        <div className="bg-white border border-slate-100 p-6 rounded-2xl flex flex-col justify-between shadow-xs">
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono">Learning Streak</p>
+            <h3 className="text-3xl font-extrabold text-slate-900 mt-2">4 Days</h3>
+          </div>
+          <p className="text-[11px] text-slate-500 mt-4 font-sans">Keep completing 1 video/day to lock current streak</p>
+        </div>
+
+        <div className="bg-white border border-slate-100 p-6 rounded-2xl flex flex-col justify-between shadow-xs">
+          <div>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest font-mono">Time Enrolled</p>
+            <h3 className="text-3xl font-extrabold text-slate-900 mt-2">1.5h</h3>
+          </div>
+          <p className="text-[11px] text-[#00A896] mt-4 font-semibold font-sans">Estimated course lecture duration</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+================================================================================
